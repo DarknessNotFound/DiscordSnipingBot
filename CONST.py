@@ -2,15 +2,12 @@
 
 # Database Names
 if __debug__:
-    MainDB="DB_Snipes"
-    LoggingDB="DB_Logging"
+    MainDB="DB_Snipes.db"
 else:
-    MainDB="DB_Snipes_DEBUG"
-    LoggingDB="DB_Logging_DEBUG"
+    MainDB="DB_Snipes_DEBUG.db"
 
 # Table Names
 PlayersT="Players"
 PlayersAlternateNamesT="PlayersAlternateNames"
 SnipesT="Snipes"
 PermT="Permissions"
-LoggingT="Logs"

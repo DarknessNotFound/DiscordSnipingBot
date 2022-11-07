@@ -1,9 +1,12 @@
 # I don't recommend changing anything in this file, as it just sets up the cogs and runs the bot and itself.
 
+# Run this file using -o flag to run in production.
+
 import os
 import asyncio
 import random
 import discord
+from Logging import CreateLoggingDB
 
 # Needed for lists of members
 intents = discord.Intents.all()
@@ -11,15 +14,20 @@ intents.members = True
 
 from dotenv import load_dotenv
 from discord.ext import commands
-from DB_Creation import SetupDB
 
-#Setup the Database (creates tables if they aren't created yet
-SetupDB()
+#Setup the Database (creates tables if they aren't created yet)
+CreateLoggingDB()
+
 
 #Load Enviroment variables
 load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
-GUILD = os.getenv('DISCORD_GUILD')
+if __debug__:
+    TOKEN = os.getenv('DISCORD_TOKEN_TEST')
+    GUILD = os.getenv('BotTestingServer')
+else:
+    TOKEN = os.getenv('DISCORD_TOKEN')
+    GUILD = os.getenv('BSU')
+
 
 client = discord.Client(intents=intents)
 bot = commands.Bot(command_prefix='>>', intents=intents)
