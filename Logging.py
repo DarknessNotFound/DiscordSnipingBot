@@ -28,6 +28,13 @@ def CreateLoggingDB() -> None:
             Command TEXT NOT NULL,
             Arguments TEXT NULL,
             FOREIGN KEY(UserId) REFERENCES {USER_T}(Id)
+
+        CREATE TABLE {ERRORS_T}(
+            Id INTEGER PRIMARY KEY AUTOINCREMENT,
+            Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            File INTEGER NOT NULL,
+            Function TEXT NOT NULL,
+            Message TEXT NOT NULL,
     """    
     try:
         print("Create the logging DB started")
@@ -89,10 +96,11 @@ def CreateCommandsTable(Conn: sqlite3.Connection) -> None:
         Conn (sqlite3.Connection): Connection to the database
     """    
     try:
-        if(TableExists(Conn, USER_T)):
-            return
+        if(TableExists(Conn, USER_T) == False):
+            raise Exception("User table doesn't exist.")
 
         if(TableExists(Conn, COMMANDS_T)):
+            print(f"{ERRORS_T} table already exists.")
             return
         
         sql = f"""
@@ -114,40 +122,35 @@ def CreateCommandsTable(Conn: sqlite3.Connection) -> None:
         raise ex
 
 def CreateErrorsTable(Conn: sqlite3.Connection) -> None:
-    """Creates the logging table that keeps track of users running
-       commands.
+    """Creates the error logging table that keeps track of any errors.
 
-        CREATE TABLE {COMMANDS_T}(
+        CREATE TABLE {ERRORS_T}(
             Id INTEGER PRIMARY KEY AUTOINCREMENT,
             Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-            UserId INTEGER NOT NULL,
-            Command TEXT NOT NULL,
-            Arguments TEXT NULL,
-            FOREIGN KEY(UserId) REFERENCES {USER_T}(Id)
+            File INTEGER NOT NULL,
+            Function TEXT NOT NULL,
+            Message TEXT NOT NULL,
 
     Args:
         Conn (sqlite3.Connection): Connection to the database
     """    
     try:
-        if(TableExists(Conn, USER_T)):
-            return
-
-        if(TableExists(Conn, COMMANDS_T)):
+        if(TableExists(Conn, ERRORS_T)):
+            print(f"{ERRORS_T} table already exists.")
             return
         
         sql = f"""
-        CREATE TABLE {COMMANDS_T}(
+        CREATE TABLE {ERRORS_T}(
             Id INTEGER PRIMARY KEY AUTOINCREMENT,
             Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-            UserId INTEGER NOT NULL,
-            Command TEXT NOT NULL,
-            Arguements TEXT NULL,
-            FOREIGN KEY(UserId) REFERENCES {USER_T}(Id)
+            File INTEGER NOT NULL,
+            Function TEXT NOT NULL,
+            Message TEXT NOT NULL
         );
         """
         Conn.execute(sql)
         Conn.commit()
-        print(f"{COMMANDS_T} table has been created in the {Conn}")
+        print(f"{ERRORS_T} table has been created in the {Conn}")
     except Exception as ex:
         print(f"Logging -- CreateLoggingTable -- {ex}")
         Conn.rollback()
@@ -329,8 +332,6 @@ def Command(User: str, Command: str, Args: str) -> None:
         Command (str): The command the user used.
         Args (str): The arguments the user added.
 
-    Raises:
-        Exception: _description_
     """    
     try:
         conn = sqlite3.connect(CONNECTION_PATH)
@@ -347,7 +348,7 @@ def Command(User: str, Command: str, Args: str) -> None:
         
         cur = conn.cursor()
         sql = f"""
-                INSERT INTO {USER_T}(UserId, Command, Arguements)
+                INSERT INTO {COMMANDS_T}(UserId, Command, Arguements)
                 VALUES (?, ?, ?);
             """
         param = (UserId, Command, Args)
@@ -359,12 +360,79 @@ def Command(User: str, Command: str, Args: str) -> None:
     finally:
         conn.close()
 
-def Error(FileName: str, ):
-    ...
+def Error(FileName: str, Function: str, ErrorMsg: str) -> None:
+    """Adds an error log to the error table.
+
+    Args:
+        FileName (str): The file name that contains the function.
+        Command (str): The command that caused the error.
+        ErrorMsg (str): The error message.
+    """     
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        cur = conn.cursor()
+        sql = f"""
+                INSERT INTO {ERRORS_T}(File, Function, Message)
+                VALUES (?, ?, ?);
+            """
+        param = (FileName, Function, ErrorMsg)
+        cur.execute(sql, param)
+        conn.commit()
+    except Exception as ex:
+        print(f"Logging -- Log -- {ex}")
+        conn.rollback
+    finally:
+        conn.close()
 #endregion
 
-#region "Print commands"
-def GetStringOfLog(LogId: int) -> str:
+#region "Print Command Logs"
+def GetStringOfCommandLog(LogId: int) -> str:
+    try:
+        assert type(LogId) == int, "LogId not int."
+
+        conn = sqlite3.connect(CONNECTION_PATH)
+        cur = conn.cursor()
+        sql = f"SELECT * FROM {COMMANDS_T} WHERE Id={LogId};"
+        data = cur.execute(sql)
+
+        if(data.rowcount == 0):
+            raise Exception("No data returned.")
+
+        row = data[0]
+        result = f"{GetUserId(row[2])} (Id: {row[2]}) ran {row[3]} at {row[1]} with {row[4]}"
+    except Exception as ex:
+        print(f"Logging -- GetStringOfCommandLog -- {ex}")
+        result = ""
+    finally:
+        conn.close()
+        return result
+
+def GetStringOfCommandLogs(NumLogs: int = 5) -> list(str):
+    try:
+        Logs = GetLogs(NumLogs=NumLogs)
+        result = []
+        for Log in Logs:
+            result.append(GetStringOfCommandLog(Log[0]))
+        return result
+    except Exception as ex:
+        print(f"Logging -- GetStringOfCommandLogs -- {ex}")
+
+def PrintCommandLogsToConsole(NumLogs: int = 5) -> None:
+    """Prints to the console all of the logs based on the number of logs inputed.
+
+    Args:
+        NumLogs (int, optional): Number of logs to output. Defaults to 5.
+    """    
+    try:
+        Logs_S = GetStringOfCommandLogs(NumLogs=NumLogs)
+        for string in Logs_S:
+            print(string)
+    except Exception as ex:
+        print(f"Logging -- PrintLogs -- {ex}")
+#endregion
+
+#region "Print Error Logs"
+def GetStringOfErrorLog(LogId: int) -> str:
     try:
         assert type(LogId) == int, "LogId not int."
 
@@ -385,9 +453,9 @@ def GetStringOfLog(LogId: int) -> str:
         conn.close()
         return result
 
-def GetStringOfLogs(NumLogs: int = 5) -> list(str):
+def GetStringOfErrorLogs(NumLogs: int = 5) -> list(str):
     try:
-        Logs = GetLogs(NumLogs=NumLogs)
+        Logs = GetErrorLogs(NumLogs=NumLogs)
         result = []
         for Log in Logs:
             result.append(GetStringOfLog(Log[0]))
@@ -395,7 +463,7 @@ def GetStringOfLogs(NumLogs: int = 5) -> list(str):
     except Exception as ex:
         print(f"Logging -- PrintLogs -- {ex}")
 
-def PrintLogsToConsole(NumLogs: int = 5) -> None:
+def PrintErrorLogsToConsole(NumLogs: int = 5) -> None:
     """Prints to the console all of the logs based on the number of logs inputed.
 
     Args:
