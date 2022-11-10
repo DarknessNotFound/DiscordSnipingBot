@@ -2,10 +2,6 @@ import sqlite3
 from CONST import *
 import Logging as Log
 
-def InitilizeDbs():
-    Log.CreateLoggingDB()
-    CreateSnipesDB()
-
 def CreateSnipesDB():
     return
     conn = sqlite3.connect(CONST.MainDB)

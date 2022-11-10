@@ -6,6 +6,7 @@ import os
 import asyncio
 import random
 import discord
+from DbManagement import CreateSnipesDB
 from Logging import CreateLoggingDB
 
 # Needed for lists of members
@@ -17,7 +18,7 @@ from discord.ext import commands
 
 #Setup the Database (creates tables if they aren't created yet)
 CreateLoggingDB()
-
+CreateSnipesDB()
 
 #Load Enviroment variables
 load_dotenv()
