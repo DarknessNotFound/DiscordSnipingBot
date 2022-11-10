@@ -1,5 +1,6 @@
 import os
 import sqlite3
+from discord.ext.commands import Context
 
 # Database Names
 if __debug__:
@@ -215,7 +216,7 @@ def UserExist(user: str) -> bool:
     except Exception as ex:
         print(f"Logging -- UserExist -- {ex}")
         raise ex
-
+        result = False
     finally:
         conn.close()
         return result
@@ -230,7 +231,7 @@ def GetUserId(user: str) -> int:
         int: User's id.
     """    
     try:
-        if(UserExist == False):
+        if(UserExist(user) == False):
             raise Exception("User doesn't exist.")
 
         conn = sqlite3.connect(CONNECTION_PATH)

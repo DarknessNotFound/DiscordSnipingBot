@@ -31,7 +31,7 @@ else:
 
 
 client = discord.Client(intents=intents)
-bot = commands.Bot(command_prefix='>>', intents=intents)
+bot = commands.Bot(command_prefix='>>', intents=intents, case_insensitive=True)
 # Prints a message to say it connected successfully
 # NOTE: Sometimes takes a second to trigger and send msg
 
