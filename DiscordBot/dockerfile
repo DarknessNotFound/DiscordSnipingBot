@@ -5,7 +5,10 @@ WORKDIR /home/delphi/Docker/SnipingBot
 RUN python3 -m pip install -U discord.py
 RUN python3 -m pip install -U python-dotenv
 
+RUN mkdir ./Databases
+RUN mkdir ./cogs
 COPY *.py ./
-COPY cogs/*.py ./cogs
+COPY cogs/*.py ./cogs/
+COPY .env ./
 
 CMD [ "python", "./main.py"]
