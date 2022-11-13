@@ -4,9 +4,9 @@ from discord.ext.commands import Context
 
 # Database Names
 if __debug__:
-    LOGGING_DB="DB_Logging.db"
-else:
     LOGGING_DB="DB_Logging_DEBUG.db"
+else:
+    LOGGING_DB="DB_Logging.db"
 
 CONNECTION_PATH=os.path.join("./Databases", LOGGING_DB)
 USER_T="Users"
