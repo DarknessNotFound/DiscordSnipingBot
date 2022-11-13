@@ -7,4 +7,9 @@ services:
       - 8080:80
 
   bot:
-    build: DiscordBot 
+    build: DiscordBot
+    environment:
+      - DISCORD_TOKEN=$TOKEN
+      - DISCORD_TOKEN_TEST=$TOKEN_TEST
+      - BSU=$BSU_SERVER
+      - BotTestingServer=$BotTestingServer
