@@ -1,14 +1,14 @@
 FROM python:latest
 LABEL Maintainer="Grant"
-WORKDIR /home/delphi/Docker/SnipingBot
+WORKDIR /app
 
 RUN python3 -m pip install -U discord.py
 RUN python3 -m pip install -U python-dotenv
 
 RUN mkdir ./Databases
 RUN mkdir ./cogs
+COPY .env ./
 COPY *.py ./
 COPY cogs/*.py ./cogs/
-COPY .env ./
 
 CMD [ "python", "./main.py"]
