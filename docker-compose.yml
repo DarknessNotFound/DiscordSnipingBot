@@ -1,6 +1,8 @@
 version: "2.12"
 
 services:
+  git: 
+    command: 
   web:
     build: Tools
     ports: 

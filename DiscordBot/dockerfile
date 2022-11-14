@@ -11,3 +11,4 @@ COPY *.py ./
 COPY cogs/*.py ./cogs/
 
 CMD [ "python", "./main.py"]
+CMD  python -o ./main.py
