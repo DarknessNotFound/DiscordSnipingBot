@@ -9,6 +9,8 @@ import discord
 from DbManagement import CreateSnipesDB
 from Logging import CreateLoggingDB
 
+print("Sniping Bot application started.")
+
 # Needed for lists of members
 intents = discord.Intents.all()
 intents.members = True
@@ -25,9 +27,11 @@ load_dotenv()
 if __debug__:
     TOKEN = os.getenv('DISCORD_TOKEN_TEST')
     GUILD = os.getenv('BotTestingServer')
+    Version = "Debug"
 else:
     TOKEN = os.getenv('DISCORD_TOKEN')
     GUILD = os.getenv('BSU')
+    Version = "Production"
 
 
 client = discord.Client(intents=intents)
@@ -37,7 +41,7 @@ bot = commands.Bot(command_prefix='>>', intents=intents, case_insensitive=True)
 
 @bot.event
 async def on_ready():
-    print(f"Connected successfully in PROD!")
+    print(f"Connected successfully in " + Version)
     
 @bot.command()
 async def load(ctx, extension):

@@ -8,7 +8,7 @@ if __debug__:
 else:
     LOGGING_DB="DB_Logging.db"
 
-CONNECTION_PATH=os.path.join("./Databases", LOGGING_DB)
+CONNECTION_PATH=os.path.join("./databases", LOGGING_DB)
 USER_T="Users"
 COMMANDS_T="Logs"
 ERRORS_T="Errors"
@@ -40,7 +40,7 @@ def CreateLoggingDB() -> None:
     """    
     try:
         print("Create the logging DB started")
-        print(CONNECTION_PATH)
+        print("Path: " + str(CONNECTION_PATH))
         conn = sqlite3.connect(CONNECTION_PATH)
         print(f"Connected to the {LOGGING_DB} database.")
         CreateUsersTable(conn)
@@ -276,12 +276,14 @@ def GetCommandLogs(NumLogs: int = 5) -> list:
         list: The rows returned from the select statement.
     """    
     try:
-        if int < 1:
+        result = []
+        if NumLogs < 1:
             raise Exception("Attempting to retrieve 0 or less records.")
     
         conn = sqlite3.connect(CONNECTION_PATH)
         cur = conn.cursor()
-        result = cur.execute(f"SELECT * FROM {USER_T} LIMIT {NumLogs};")
+        data = cur.execute(f"SELECT * FROM {COMMANDS_T} ORDER BY Timestamp DESC LIMIT {NumLogs};").fetchall()
+        result = [list(row) for row in data]
     except Exception as ex:
         print(f"LOGGING -- GetLogs -- {ex}")
         result = []
