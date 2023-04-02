@@ -6,7 +6,7 @@ import os
 import asyncio
 import random
 import discord
-from DbManagement import CreateSnipesDB
+from DbManagement import CreateSnipesDB, TestingDbManagementCRUD
 from Logging import CreateLoggingDB
 
 print("Sniping Bot application started.")
@@ -21,7 +21,7 @@ from discord.ext import commands
 #Setup the Database (creates tables if they aren't created yet)
 CreateLoggingDB()
 CreateSnipesDB()
-
+TestingDbManagementCRUD()
 #Load Enviroment variables
 load_dotenv()
 if __debug__:

@@ -42,7 +42,7 @@ def CreateLoggingDB() -> None:
         print("Create the logging DB started")
         print("Path: " + str(CONNECTION_PATH))
         conn = sqlite3.connect(CONNECTION_PATH)
-        print(f"Connected to the {LOGGING_DB} database.")
+
         CreateUsersTable(conn)
         CreateCommandsTable(conn)
         CreateErrorsTable(conn)
@@ -64,10 +64,7 @@ def CreateUsersTable(Conn: sqlite3.Connection) -> None:
     """    
     try:
         if(TableExists(Conn, USER_T)):
-            print(f"{USER_T} table already exists.")
             return
-        else:
-            print(f"{USER_T} table does not exist.")
         
         sql = f"""
         CREATE TABLE {USER_T}(
@@ -105,11 +102,7 @@ def CreateCommandsTable(Conn: sqlite3.Connection) -> None:
             raise Exception("User table doesn't exist.")
 
         if(TableExists(Conn, COMMANDS_T)):
-            print(f"{COMMANDS_T} table already exists.")
             return
-        else:
-            print(f"{COMMANDS_T} table does not exist.")
-
         
         sql = f"""
         CREATE TABLE {COMMANDS_T}(
@@ -144,10 +137,7 @@ def CreateErrorsTable(Conn: sqlite3.Connection) -> None:
     """    
     try:
         if(TableExists(Conn, ERRORS_T)):
-            print(f"{ERRORS_T} table already exists.")
             return
-        else:
-            print(f"{ERRORS_T} table does not exist.")
         
         sql = f"""
         CREATE TABLE {ERRORS_T}(
@@ -245,7 +235,7 @@ def GetUserId(user: str) -> int:
             raise Exception("User doesn't exist.")
 
         if(len(rows) > 1):
-            raise Exception(f"User returned {data.rowcount} rows.")
+            raise Exception(f"User returned {rows.rowcount} rows.")
 
         result = rows[0][0]
     except Exception as ex:
@@ -358,7 +348,6 @@ def AddUser(user: str, *args) -> int:
     finally:
         conn.close()
         return result
-    pass
 
 def Command(User: str, Command: str, Args: str) -> None:
     """Adds a command log to the command log database.
