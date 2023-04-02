@@ -21,7 +21,7 @@ from discord.ext import commands
 #Setup the Database (creates tables if they aren't created yet)
 CreateLoggingDB()
 CreateSnipesDB()
-TestingDbManagementCRUD()
+#TestingDbManagementCRUD()
 #Load Enviroment variables
 load_dotenv()
 if __debug__:

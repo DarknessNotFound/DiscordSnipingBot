@@ -1,5 +1,6 @@
 import os
 import sqlite3
+from time import sleep
 from discord.ext.commands import Context
 
 # Database Names
@@ -8,7 +9,7 @@ if __debug__:
 else:
     LOGGING_DB="DB_Logging.db"
 
-CONNECTION_PATH=os.path.join("./databases", LOGGING_DB)
+CONNECTION_PATH=os.path.join("./Databases", LOGGING_DB)
 USER_T="Users"
 COMMANDS_T="Logs"
 ERRORS_T="Errors"
@@ -40,8 +41,9 @@ def CreateLoggingDB() -> None:
     """    
     try:
         print("Create the logging DB started")
-        print("Path: " + str(CONNECTION_PATH))
+        print(CONNECTION_PATH)
         conn = sqlite3.connect(CONNECTION_PATH)
+        print("Path: " + str(CONNECTION_PATH))
 
         CreateUsersTable(conn)
         CreateCommandsTable(conn)

@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import re
 from CONST import *
 import Logging as Log
 
@@ -9,13 +10,36 @@ if __debug__:
 else:
     SNIPES_DB="DB_Sniping.db"
 
-CONNECTION_PATH=os.path.join("./databases", SNIPES_DB)
+CONNECTION_PATH=os.path.join("./Databases", SNIPES_DB)
 PLAYERS_T="Players"
 SNIPES_T="Snipes"
 PERMISSIONS_T="Permissions"
 ISOLATION_LEVEL="DEFERRED"
 
 FILE_NAME="DbManagement"
+
+#region "Helper"
+def ExtractDiscrodId(string: str) -> str:
+    """Gets the discord id from the inputed string
+
+    Args:
+        string (str): string to extract from
+
+    Returns:
+        str: Empty if none are found, the discord id if that is found, and the original string if more than one is found.
+    """
+    pattern = "<@\d{18}>"
+    patternIdOnly = "\d{18}"
+    Canidates = re.findall(pattern, string)
+
+    if len(Canidates) == 0:
+        return ""
+    
+    if len(Canidates) > 1:
+        return string
+    
+    return re.findall(patternIdOnly, Canidates[0])[0]
+#endregion
 
 #region "Database Creation"
 def CreateSnipesDB():
@@ -168,13 +192,7 @@ def CreatePlayer(DiscordId: str = "", Name: str = "") -> int:
     """    
 
     try:
-        if PlayerExistsDiscordId(DiscordId=DiscordId):
-            raise Exception("Player already exists.")
-
-        if PlayerExistsName(Name=Name):
-            raise Exception("Player already exists.")
-
-        if DiscordId == Name:
+        if DiscordId == "" and Name == "":
             raise Exception("Neither DiscordId nor Name inputed.")
         
         conn = sqlite3.connect(CONNECTION_PATH, isolation_level=ISOLATION_LEVEL)

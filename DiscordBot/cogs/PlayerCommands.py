@@ -18,23 +18,35 @@ class Player_Commands(commands.Cog):
         """        
         try:
             UserDiscordId = ctx.author.id
-            SnipedName = ''.join(args)
-            print(f"'{UserDiscordId}' sniped '{SnipedName}'")
+            SnipedArgs = ''.join(args)
             Log.Command(UserDiscordId, "snipe", ' '.join(args))
-            
+            SnipedExtractedDiscordId = DB.ExtractDiscrodId(SnipedArgs)
+
+            #Get the sniper ID (creating if needed)
             if DB.PlayerExistsDiscordId(UserDiscordId):
                 print("Here 1")
                 SniperId = DB.ReadPlayerDiscordId(UserDiscordId)[0]
             else:
                 print("Here 2")
                 SniperId = DB.CreatePlayer(DiscordId=UserDiscordId, Name=ctx.author.display_name)
-            
-            if DB.PlayerExistsName(Name=SnipedName):
-                print("Here 3")
-                SnipedId = DB.ReadPlayerName(Name=SnipedName)[0]
+
+            #Get the sniped ID (creating if needed)
+            if len(SnipedExtractedDiscordId) == 18:
+                if DB.PlayerExistsDiscordId(SnipedExtractedDiscordId):
+                    print("Here 5")
+                    SnipedId = DB.ReadPlayerDiscordId(SnipedExtractedDiscordId)[0]
+                else:
+                    print("Here 6")
+                    SnipedUser = await self.client.fetch_user(SnipedExtractedDiscordId)
+                    SnipedName = SnipedUser.display_name
+                    SnipedId = DB.CreatePlayer(DiscordId=SnipedExtractedDiscordId, Name=SnipedName)
             else:
-                print("Here 4")
-                SnipedId = DB.CreatePlayer(Name=SnipedName)
+                if DB.PlayerExistsName(Name=SnipedArgs):
+                    print("Here 3")
+                    SnipedId = DB.ReadPlayerName(Name=SnipedArgs)[0]
+                else:
+                    print("Here 4")
+                    SnipedId = DB.CreatePlayer(Name=SnipedArgs)
 
             SnipeId = DB.CreateSnipe(SniperId=SniperId, SnipedId=SnipedId)
             await ctx.send("Created snipe.")
