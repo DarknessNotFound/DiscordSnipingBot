@@ -36,7 +36,7 @@ def ExtractDiscrodId(string: str) -> str:
         return ""
     
     if len(Canidates) > 1:
-        return string
+        return [re.findall(patternIdOnly, Id) for Id in Canidates]
     
     return re.findall(patternIdOnly, Canidates[0])[0]
 #endregion
@@ -283,7 +283,7 @@ def PlayerExistsId(Id: int) -> bool:
     try:
         result = False
         conn = sqlite3.connect(CONNECTION_PATH)
-        sql = f"SELECT * FROM {PLAYERS_T} WHERE Id=?"
+        sql = f"SELECT * FROM {PLAYERS_T} WHERE Id=? AND IsDeleted=0"
         param = ([str(Id)])
         cur = conn.execute(sql, param)
         NumRows = len(cur.fetchall())
@@ -315,7 +315,7 @@ def PlayerExistsDiscordId(DiscordId: str) -> bool:
     try:
         result = False
         conn = sqlite3.connect(CONNECTION_PATH)
-        sql = f"SELECT * FROM {PLAYERS_T} WHERE DiscordId=?"
+        sql = f"SELECT * FROM {PLAYERS_T} WHERE DiscordId=? AND IsDeleted=0"
         param = ([str(DiscordId)])
         cur = conn.execute(sql, param)
         NumRows = len(cur.fetchall())
@@ -347,7 +347,7 @@ def PlayerExistsName(Name: str) -> bool:
     try:
         result = False
         conn = sqlite3.connect(CONNECTION_PATH)
-        sql = f"SELECT * FROM {PLAYERS_T} WHERE Name=?"
+        sql = f"SELECT * FROM {PLAYERS_T} WHERE Name=? AND IsDeleted=0"
         param = ([str(Name)])
         cur = conn.execute(sql, param)
         NumRows = len(cur.fetchall())
@@ -377,7 +377,7 @@ def ReadPlayerId(Id: int) -> list:
         result = []
         conn = sqlite3.connect(CONNECTION_PATH)
         if PlayerExistsId(Id=Id):
-            sql = f"SELECT * FROM {PLAYERS_T} WHERE Id=?;"
+            sql = f"SELECT * FROM {PLAYERS_T} WHERE Id=?"
             param = ([str(Id)])
             cur = conn.execute(sql, param)
             row = cur.fetchone()
@@ -403,7 +403,7 @@ def ReadPlayerDiscordId(DiscordId: str) -> list:
         result = []
         conn = sqlite3.connect(CONNECTION_PATH)
         if PlayerExistsDiscordId(DiscordId=DiscordId):
-            sql = f"SELECT * FROM {PLAYERS_T} WHERE DiscordId=?;"
+            sql = f"SELECT * FROM {PLAYERS_T} WHERE DiscordId=?"
             param = ([str(DiscordId)])
             cur = conn.execute(sql, param)
             row = cur.fetchone()
@@ -443,6 +443,28 @@ def ReadPlayerName(Name: str) -> list:
         return result
 
 def ReadAllPlayers() -> list:
+    result = []
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"SELECT * FROM {PLAYERS_T} WHERE IsDeleted=0;"
+        cur = conn.execute(sql)
+        rows = cur.fetchall()
+        print(len(rows))
+        print("Here")
+
+        for row in rows:
+            print("Yee")
+            result.append(list(row))
+    except Exception as ex:
+        Log.Error(FILE_NAME, "ReadAllPlayers", str(ex))
+        result = []
+    finally:
+        conn.close()
+        print(result)
+        return result
+
+def ReadAllDeletedPlayers() -> list:
+    sql = f"SELECT * FROM {PLAYERS_T} WHERE IsDelete"
     return []
 #endregion
 

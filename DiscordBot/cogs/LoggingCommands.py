@@ -8,7 +8,7 @@ class Logging_Commands(commands.Cog):
     def __init__(self, client):
         self.client = client
     # Commands
-    @commands.command(name='log_commands', help='Gets the x most recent logs; x is an integer with a default of 5.')
+    @commands.command(name='logs', help='Gets the x most recent logs; x is an integer with a default of 5.')
     async def GetCommandLogsCommand(self, ctx, *args):
         """
         Gets the most recent log commands from the database and sends them as a formated embed.
