@@ -18,7 +18,7 @@ class Player_Commands(commands.Cog):
         """        
         try:
             UserDiscordId = ctx.author.id
-            SnipedArgs = ''.join(args)
+            SnipedArgs = ' '.join(args)
             Log.Command(UserDiscordId, "snipe", ' '.join(args))
             SnipedExtractedDiscordId = DB.ExtractDiscrodId(SnipedArgs)
 
