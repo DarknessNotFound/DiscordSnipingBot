@@ -18,7 +18,11 @@ class Admin_Commands(commands.Cog):
         """        
         try:
             Log.Command(ctx.author.id, "Players", ' '.join(args))
-            print(args)
+
+            if DB.AuthorHavePermission(ctx.author.id, 1) == False:
+                await ctx.send("Action denied: Not high enough permission level.")
+                return
+            
             if len(args) == 0:
                 await ctx.send("ERROR: no arguements given, use >>help players for help.")
                 return
@@ -30,7 +34,6 @@ class Admin_Commands(commands.Cog):
                     return
             
             if args [0] == '-a':
-                print("Displaying all players")
                 PlayersToSend = DB.ReadAllPlayers()
             
             if args [0] == "-ad":

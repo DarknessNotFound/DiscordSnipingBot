@@ -176,6 +176,21 @@ def TestingPlayerCRUD():
 #endregion
 
 #region "Create Commands"
+def CreateSuperuser(DiscordId: str):
+    """Creates a super user, this really should only be used once in main
+    so that there is at least one user able to give others admin.
+
+    Args:
+        DiscordId (str): Their 18 digit discord id (only the numbers)
+    """
+    if PlayerExistsDiscordId(DiscordId=DiscordId):
+        owner = ReadPlayerDiscordId(DiscordId=DiscordId)
+        if len(owner) > 0:
+            UpdatePlayerPermissionLevel(Id=owner[0], PermissionLevel=9)
+    else:
+        Id = CreatePlayer(DiscordId=DiscordId, Name="Owner")
+        UpdatePlayerPermissionLevel(Id=Id, PermissionLevel=9)
+
 def CreatePlayer(DiscordId: str = "", Name: str = "") -> int:
     """Adds a player by their discord id and/or their name.
 
@@ -449,23 +464,27 @@ def ReadAllPlayers() -> list:
         sql = f"SELECT * FROM {PLAYERS_T} WHERE IsDeleted=0;"
         cur = conn.execute(sql)
         rows = cur.fetchall()
-        print(len(rows))
-        print("Here")
 
         for row in rows:
-            print("Yee")
             result.append(list(row))
+        
     except Exception as ex:
         Log.Error(FILE_NAME, "ReadAllPlayers", str(ex))
         result = []
     finally:
         conn.close()
-        print(result)
         return result
 
 def ReadAllDeletedPlayers() -> list:
-    sql = f"SELECT * FROM {PLAYERS_T} WHERE IsDelete"
+    sql = f"SELECT * FROM {PLAYERS_T} WHERE IsDelete=1;"
     return []
+
+def AuthorHavePermission(DiscordId, PermissionLevel):
+    player = ReadPlayerDiscordId(DiscordId)
+    if len(player) < 4:
+        return False
+    else:
+        return PermissionLevel <= player[3]
 #endregion
 
 #region "Update Commands"
@@ -474,6 +493,25 @@ def UpdatePlayerDiscordId(Id: int, DiscordId: str) -> None:
 
 def UpdatePlayerName(Id: int, Name: str):
     return
+
+def UpdatePlayerPermissionLevel(Id: int, PermissionLevel: int):
+    if PlayerExistsId(Id=Id) == False:
+        return False
+    
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"UPDATE {PLAYERS_T} SET PermissionLevel=? WHERE Id=?"
+        param = (PermissionLevel, Id)
+        cur = conn.execute(sql, param)
+        conn.commit()
+        
+    except Exception as ex:
+        print("Error in UpdatePlayerPermissionLevel: " + str(ex))
+        Log.Error(FILE_NAME, "UpdatePlayerPermissionLevel", str(ex))
+    finally:
+        conn.close()
+
+
 #endregion
 
 #region "Delete Commands"
