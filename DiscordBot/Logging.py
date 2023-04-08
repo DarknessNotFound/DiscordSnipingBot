@@ -40,10 +40,8 @@ def CreateLoggingDB() -> None:
             Message TEXT NOT NULL,
     """    
     try:
-        print("Create the logging DB started")
-        print(CONNECTION_PATH)
+        print("Creating the Logging DB started.")
         conn = sqlite3.connect(CONNECTION_PATH)
-        print("Path: " + str(CONNECTION_PATH))
 
         CreateUsersTable(conn)
         CreateCommandsTable(conn)
@@ -133,7 +131,7 @@ def CreateErrorsTable(Conn: sqlite3.Connection) -> None:
             File INTEGER NOT NULL,
             Function TEXT NOT NULL,
             Message TEXT NOT NULL,
-
+  
     Args:
         Conn (sqlite3.Connection): Connection to the database
     """    
@@ -293,14 +291,16 @@ def GetErrorLogs(NumLogs: int = 5) -> list:
         list: The rows returned from the select statement.
     """    
     try:
-        if int < 1:
+        result = []
+        if NumLogs < 1:
             raise Exception("Attempting to retrieve 0 or less records.")
     
         conn = sqlite3.connect(CONNECTION_PATH)
         cur = conn.cursor()
-        result = cur.execute(f"SELECT * FROM {ERRORS_T} LIMIT {NumLogs};")
+        data = cur.execute(f"SELECT * FROM {ERRORS_T} ORDER BY Timestamp DESC LIMIT {NumLogs};").fetchall()
+        result = [list(row) for row in data]
     except Exception as ex:
-        print(f"LOGGING -- GetLogs -- {ex}")
+        print(f"LOGGING -- GetErrorLogs -- {ex}")
         result = []
     finally:
         conn.close()

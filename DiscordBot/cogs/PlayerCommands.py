@@ -5,7 +5,7 @@ import DbManagement as DB
 from discord.ext import commands
 
 FILE_NAME = "PlayerCommands"
-class Player_Commands(commands.Cog):
+class Player(commands.Cog):
     def __init__(self, client):
         self.client = client
     # Commands
@@ -20,8 +20,9 @@ class Player_Commands(commands.Cog):
             UserDiscordId = ctx.author.id
             SnipedArgs = ' '.join(args)
             Log.Command(UserDiscordId, "snipe", ' '.join(args))
-            SnipedExtractedDiscordId = DB.ExtractDiscrodId(SnipedArgs)
-
+            SnipedExtractedDiscordId = DB.ExtractDiscordId(SnipedArgs)
+            SnipedDbIds = []
+                
             #Get the sniper ID (creating if needed)
             if DB.PlayerExistsDiscordId(UserDiscordId):
                 SniperId = DB.ReadPlayerDiscordId(UserDiscordId)[0]
@@ -29,24 +30,30 @@ class Player_Commands(commands.Cog):
                 SniperId = DB.CreatePlayer(DiscordId=UserDiscordId, Name=ctx.author.display_name)
 
             #Get the sniped ID (creating if needed)
-            if len(SnipedExtractedDiscordId) == 18:
-                if DB.PlayerExistsDiscordId(SnipedExtractedDiscordId):
-                    SnipedId = DB.ReadPlayerDiscordId(SnipedExtractedDiscordId)[0]
+            for DiscordId in SnipedExtractedDiscordId:
+                if DB.PlayerExistsDiscordId(DiscordId):
+                    SnipedDbIds.append(DB.ReadPlayerDiscordId(DiscordId)[0])
                 else:
-                    SnipedUser = await self.client.fetch_user(SnipedExtractedDiscordId)
+                    SnipedUser = await self.client.fetch_user(DiscordId)
                     SnipedName = SnipedUser.display_name
-                    SnipedId = DB.CreatePlayer(DiscordId=SnipedExtractedDiscordId, Name=SnipedName)
-            else:
-                if DB.PlayerExistsName(Name=SnipedArgs):
-                    SnipedId = DB.ReadPlayerName(Name=SnipedArgs)[0]
-                else:
-                    SnipedId = DB.CreatePlayer(Name=SnipedArgs)
+                    SnipedDbIds.append(DB.CreatePlayer(DiscordId=DiscordId, Name=SnipedName))
 
-            SnipeId = DB.CreateSnipe(SniperId=SniperId, SnipedId=SnipedId)
-            await ctx.send("Created snipe.")
+            if len(SnipedExtractedDiscordId) == 0:
+                if DB.PlayerExistsName(Name=SnipedArgs):
+                    SnipedDbIds.append(DB.ReadPlayerName(Name=SnipedArgs)[0])
+                else:
+                    SnipedDbIds.append(DB.CreatePlayer(Name=SnipedArgs))
+
+            for SnipedId in SnipedDbIds:
+                if SnipedId == SniperId:
+                    await ctx.send("Stop hitting yourself! You cannot self-snipe.")
+                    continue
+
+                SnipeId = DB.CreateSnipe(SniperId=SniperId, SnipedId=SnipedId)
+                await ctx.send(f"{DB.PlayerDisplayName(SniperId)} sniped {DB.PlayerDisplayName(SnipedId)} -- Snipe Id: {SnipeId}")
         except Exception as ex:
             Log.Error(FILE_NAME, "snipe", str(ex))
             await ctx.send("Error recording sniping, please try again.")
 
 async def setup(client):
-    await client.add_cog(Player_Commands(client))
+    await client.add_cog(Player(client))

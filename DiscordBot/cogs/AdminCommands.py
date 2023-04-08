@@ -5,13 +5,15 @@ import DbManagement as DB
 from discord.ext import commands
 
 FILE_NAME = "AdminCommands"
-class Admin_Commands(commands.Cog):
+ADMIN_PERMISSION_LEVEL = 1
+
+class Admin(commands.Cog):
     def __init__(self, client):
         self.client = client
     # Commands
     @commands.command(name='players', help='Various Player Options: -dis for discord id, -id for id, -n for name, -a for all, and -ad for all deleted')
-    async def echo(self, ctx, *args):
-        """Echos
+    async def players(self, ctx, *args):
+        """list players
 
         Args:
             ctx (_type_): _description_
@@ -19,7 +21,7 @@ class Admin_Commands(commands.Cog):
         try:
             Log.Command(ctx.author.id, "Players", ' '.join(args))
 
-            if DB.AuthorHavePermission(ctx.author.id, 1) == False:
+            if DB.AuthorHavePermission(ctx.author.id, ADMIN_PERMISSION_LEVEL) == False:
                 await ctx.send("Action denied: Not high enough permission level.")
                 return
             
@@ -60,4 +62,4 @@ class Admin_Commands(commands.Cog):
             Log.Error(FILE_NAME, "Players", str(ex))
 
 async def setup(client):
-    await client.add_cog(Admin_Commands(client))
+    await client.add_cog(Admin(client))

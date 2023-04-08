@@ -19,7 +19,7 @@ ISOLATION_LEVEL="DEFERRED"
 FILE_NAME="DbManagement"
 
 #region "Helper"
-def ExtractDiscrodId(string: str) -> str:
+def ExtractDiscordId(string: str) -> str:
     """Gets the discord id from the inputed string
 
     Args:
@@ -33,12 +33,12 @@ def ExtractDiscrodId(string: str) -> str:
     Canidates = re.findall(pattern, string)
 
     if len(Canidates) == 0:
-        return ""
+        return []
     
     if len(Canidates) > 1:
-        return [re.findall(patternIdOnly, Id) for Id in Canidates]
+        return [re.findall(patternIdOnly, Id)[0] for Id in Canidates]
     
-    return re.findall(patternIdOnly, Canidates[0])[0]
+    return [re.findall(patternIdOnly, Canidates[0])[0]]
 #endregion
 
 #region "Database Creation"
@@ -46,8 +46,7 @@ def CreateSnipesDB():
     """Creates all the databases nessessary for the program.
     """
     try:
-        print("Creating Sniping DB started.")
-        print("Path: " + str(CONNECTION_PATH))
+        print("Creating the Sniping DB started.")
         conn = sqlite3.connect(CONNECTION_PATH)
 
         CreatePlayersTable(conn)
@@ -189,7 +188,7 @@ def CreateSuperuser(DiscordId: str):
             UpdatePlayerPermissionLevel(Id=owner[0], PermissionLevel=9)
     else:
         Id = CreatePlayer(DiscordId=DiscordId, Name="Owner")
-        UpdatePlayerPermissionLevel(Id=Id, PermissionLevel=9)
+        UpdatePlayerPermissionLevel(Id=Id, PermissionLevel=10)
 
 def CreatePlayer(DiscordId: str = "", Name: str = "") -> int:
     """Adds a player by their discord id and/or their name.
@@ -485,6 +484,22 @@ def AuthorHavePermission(DiscordId, PermissionLevel):
         return False
     else:
         return PermissionLevel <= player[3]
+
+def PlayerDisplayName(Id: int) -> str:
+    if PlayerExistsId(Id=Id):
+        player = ReadPlayerId(Id=Id)
+        if len(player) == 0:
+            return ""
+        
+        #If player doesn't have a DiscordId then display name
+        if player[1] == "":
+            return player[2]
+        #Otherwise show their discord name.
+        else:
+            return f"<@{player[1]}>"
+
+    else:
+        return ""
 #endregion
 
 #region "Update Commands"

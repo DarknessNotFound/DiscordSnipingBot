@@ -4,7 +4,7 @@ import Logging as Log
 from discord.ext import commands
 
 FILE_NAME = "AdminTest"
-class AdminTest_Commands(commands.Cog):
+class AdminTest(commands.Cog):
     def __init__(self, client):
         self.client = client
     # Commands
@@ -31,4 +31,4 @@ class AdminTest_Commands(commands.Cog):
             Log.Error(FILE_NAME, "throwError", str(ex))
 
 async def setup(client):
-    await client.add_cog(AdminTest_Commands(client))
+    await client.add_cog(AdminTest(client))
