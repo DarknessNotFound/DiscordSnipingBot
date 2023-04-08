@@ -24,14 +24,8 @@ CreateSnipesDB()
 #TestingDbManagementCRUD()
 #Load Enviroment variables
 load_dotenv()
-if __debug__:
-    TOKEN = os.getenv('DISCORD_TOKEN_TEST')
-    GUILD = os.getenv('BotTestingServer')
-    Version = "Debug"
-else:
-    TOKEN = os.getenv('DISCORD_TOKEN')
-    GUILD = os.getenv('BSU')
-    Version = "Production"
+TOKEN = os.getenv('TOKEN')
+GUILD = os.getenv('SERVER')
 
 
 client = discord.Client(intents=intents)
@@ -41,7 +35,7 @@ bot = commands.Bot(command_prefix='>>', intents=intents, case_insensitive=True)
 
 @bot.event
 async def on_ready():
-    print(f"Connected successfully in " + Version)
+    print(f"Connected successfully.")
     
 @bot.command()
 async def load(ctx, extension):
