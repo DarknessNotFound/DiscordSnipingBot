@@ -185,7 +185,7 @@ def CreateSuperuser(DiscordId: str):
     if PlayerExistsDiscordId(DiscordId=DiscordId):
         owner = ReadPlayerDiscordId(DiscordId=DiscordId)
         if len(owner) > 0:
-            UpdatePlayerPermissionLevel(Id=owner[0], PermissionLevel=9)
+            UpdatePlayerPermissionLevel(Id=owner[0], PermissionLevel=10)
     else:
         Id = CreatePlayer(DiscordId=DiscordId, Name="Owner")
         UpdatePlayerPermissionLevel(Id=Id, PermissionLevel=10)
@@ -281,7 +281,7 @@ def CreateSnipe(SniperId: int, SnipedId: int) -> int:
         return result
 #endregion
 
-#region "Read Commands"
+#region "Read Player Commands"
 def PlayerExistsId(Id: int) -> bool:
     """Checks if a given Id exists in the players table
 
@@ -475,8 +475,22 @@ def ReadAllPlayers() -> list:
         return result
 
 def ReadAllDeletedPlayers() -> list:
-    sql = f"SELECT * FROM {PLAYERS_T} WHERE IsDelete=1;"
-    return []
+    result = []
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"SELECT * FROM {PLAYERS_T} WHERE IsDeleted=1;"
+        cur = conn.execute(sql)
+        rows = cur.fetchall()
+
+        for row in rows:
+            result.append(list(row))
+        
+    except Exception as ex:
+        Log.Error(FILE_NAME, "ReadAllPlayers", str(ex))
+        result = []
+    finally:
+        conn.close()
+        return result
 
 def AuthorHavePermission(DiscordId, PermissionLevel):
     player = ReadPlayerDiscordId(DiscordId)
@@ -502,6 +516,65 @@ def PlayerDisplayName(Id: int) -> str:
         return ""
 #endregion
 
+#region "Read Snipes Commands"
+def SnipeIdExists(Id: int) -> bool:
+    """Checks if a given Id exists in the snipes table
+
+    Args:
+        Id (Id): Id to check
+
+    Raises:
+        ex: Any error occurs
+
+    Returns:
+        bool: True if the table returns only one row
+    """    
+    try:
+        result = False
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"SELECT * FROM {SNIPES_DB} WHERE Id=? AND IsDeleted=0"
+        param = ([str(Id)])
+        cur = conn.execute(sql, param)
+        NumRows = len(cur.fetchall())
+        result = NumRows == 1
+
+        if cur.rowcount > 1:
+            raise Exception(f"Returned {NumRows} rows.")
+
+    except Exception as ex:
+        print(f"{FILE_NAME} -- SnipeIdExists -- {ex}")
+        raise ex
+
+    finally:
+        conn.close()
+        return result
+
+def ReadSnipes(NumSnipes: int = 5) -> list:
+    """Gets the 5 most recent snipes from the snipe table (or the number input).
+
+    Args:
+        NumLogs (int, optional): Number of logs to return. Defaults to 5.
+
+    Returns:
+        list: The rows returned from the select statement.
+    """    
+    try:
+        result = []
+        if NumSnipes < 1:
+            raise Exception("Attempting to retrieve 0 or less records.")
+    
+        conn = sqlite3.connect(CONNECTION_PATH)
+        cur = conn.cursor()
+        data = cur.execute(f"SELECT * FROM {SNIPES_T} ORDER BY Timestamp DESC LIMIT {NumSnipes};").fetchall()
+        result = [list(row) for row in data]
+    except Exception as ex:
+        print(f"{FILE_NAME} -- ReadSnipes -- {ex}")
+        result = []
+    finally:
+        conn.close()
+        return result
+#endregion
+
 #region "Update Commands"
 def UpdatePlayerDiscordId(Id: int, DiscordId: str) -> None:
     return
@@ -510,6 +583,7 @@ def UpdatePlayerName(Id: int, Name: str):
     return
 
 def UpdatePlayerPermissionLevel(Id: int, PermissionLevel: int):
+    Updated = False
     if PlayerExistsId(Id=Id) == False:
         return False
     
@@ -519,12 +593,13 @@ def UpdatePlayerPermissionLevel(Id: int, PermissionLevel: int):
         param = (PermissionLevel, Id)
         cur = conn.execute(sql, param)
         conn.commit()
-        
+        Updated = True
     except Exception as ex:
         print("Error in UpdatePlayerPermissionLevel: " + str(ex))
         Log.Error(FILE_NAME, "UpdatePlayerPermissionLevel", str(ex))
     finally:
         conn.close()
+        return Updated
 
 
 #endregion
