@@ -50,10 +50,57 @@ class Player(commands.Cog):
                     continue
 
                 SnipeId = DB.CreateSnipe(SniperId=SniperId, SnipedId=SnipedId)
-                await ctx.send(f"{DB.PlayerDisplayName(SniperId)} sniped {DB.PlayerDisplayName(SnipedId)} -- Snipe Id: {SnipeId}")
+                await ctx.send(f"{SnipeId}: {DB.PlayerDisplayName(SniperId)} sniped {DB.PlayerDisplayName(SnipedId)}")
         except Exception as ex:
             Log.Error(FILE_NAME, "snipe", str(ex))
             await ctx.send("Error recording sniping, please try again.")
+
+    @commands.command(name='rules', help='Sends out the rules of the game')
+    async def rules(self, ctx, *args):
+        """Prints the sniping rules.
+        """        
+        try:
+            Log.Command(ctx.author.id, "rules", ' '.join(args))
+
+            msg = discord.Embed(
+                title='Rules and Tutorial'
+            )
+
+            msg.add_field(
+                name="***What is Sniping?***", 
+                value="Sniping is taking photos of people without them noticing.", 
+                inline=False)
+            
+            msg.add_field(
+                name="***What is considered a valid snipe?***",
+                value="For a snipe to count it has to be taken before the person being sniped sees you as well as..." +
+                    "\n> **Clear**: the victim has to be clearly identifiable in the photo." +
+                    "\n> - There is a little bit of grey area here." +
+                    "\n\n> **BSU DMZ**: The BSU's (including the parking lot) is a \"No fire\" zone. You are NOT allowed to snipe from the BSU nor someone in the BSU." +
+                    "\n\n> **Targets**: Only BSU members can be sniped, even if they aren't in the discord." +
+                    "\n> - \"Active member\" will be up to the Grants' discretion." +
+                    "\n\n> **Questionable Snipes**: If you question if your snipe is valid, do these two things: " +
+                    "\n>   1. Ask the victim, if they agree it was a valid snipe, then generally it is okay to post without further action required." +
+                    "\n>   2. If you don't know even after that, post it and send the snipe command, and then reply to your own post mentioning one of the Grants.",
+                    inline=False                 
+            )
+
+            msg.add_field(
+                name="***How to officially upload a snipe.***",
+                value="1. Send the photo into the discord." +
+                "\n2. Send the following command into the server" +
+                "\n> >>snipe *Victim*" +
+                "\n The victim must either mention the person being sniped using the @ or if they are NOT in the discord, you can use their first name and last initial." +
+                "\n\n **Multi-snipes**" +
+                "\n This year, we have a better bot that can handle snipes with multiple targets in them. You can now have multiple mentions in the *>>snipe* command. " +
+                "However, for all victims NOT in the discord, still require multiple *>>snipe* commands for the bot to count them all."
+            )
+
+            await ctx.send(embed=msg)
+
+        except Exception as ex:
+            Log.Error(FILE_NAME, "rules", str(ex))
+            await ctx.send("Error sending the rules, please try again.")   
 
 async def setup(client):
     await client.add_cog(Player(client))

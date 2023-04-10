@@ -104,7 +104,10 @@ class Admin(commands.Cog):
             else:
                 send = args[0]
                 if not send.isdigit():
-                    send 
+                    send = 5
+
+            if send > 0:
+                return
     
             
 
