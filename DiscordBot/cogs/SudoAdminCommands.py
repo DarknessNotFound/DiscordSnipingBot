@@ -22,9 +22,9 @@ class SudoAdmin(commands.Cog):
         """        
         try:
             Log.Command(ctx.author.id, "UpdatePermission", ' '.join(args))
-            if DB.AuthorHavePermission(ctx.author.id, SUDO_PERMISSION_LEVEL) == False:
-                await ctx.send("Action denied: Not high enough permission level.")
-                return
+            #if DB.AuthorHavePermission(ctx.author.id, SUDO_PERMISSION_LEVEL) == False:
+            #    await ctx.send("Action denied: Not high enough permission level.")
+            #    return
             
             if len(args) != 2:
                 await ctx.send("Have have exactly 2 arguements. Only " + str(len(args)) + " provided.")
