@@ -47,11 +47,7 @@ class Logging(commands.Cog):
         Gets the most recent errors from the database and sends them as a formated embed.
         """
         try:
-            if(ctx.author.id != MY_ID):
-                await ctx.send("You are not Grant, stop that.")
-                return
-            else:
-                await ctx.send("Fetching Errors.")
+            await ctx.send("Fetching Errors.")
             
             Errors = []
             if len(args) > 0:
