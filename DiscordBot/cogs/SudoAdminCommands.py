@@ -30,7 +30,7 @@ class SudoAdmin(commands.Cog):
                 await ctx.send("Have have exactly 2 arguements. Only " + str(len(args)) + " provided.")
                 return
             
-            DiscordId = DB.ExtractDiscrodId(args[0])
+            DiscordId = DB.ExtractDiscordId(args[0])
             Level = args[1]
 
             if DiscordId == "":
