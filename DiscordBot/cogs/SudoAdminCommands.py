@@ -5,7 +5,7 @@ import DbManagement as DB
 from discord.ext import commands
 
 FILE_NAME = "SudoAdminCommands"
-SUDO_PERMISSION_LEVEL = 2
+SUDO_PERMISSION_LEVEL = 0
 ADMIN_PERMISSION_LEVEL = 1
 PLAYER_PERMISSION_LEVEL = 0
 
@@ -42,7 +42,7 @@ class SudoAdmin(commands.Cog):
                 return
 
             if int(Level) > 9:
-                Level = 9
+                Level = 10
 
             Player = DB.ReadPlayerDiscordId(DiscordId=DiscordId)
             

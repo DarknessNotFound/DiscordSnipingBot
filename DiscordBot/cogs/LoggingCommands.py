@@ -9,6 +9,7 @@ MY_ID = 295627266719875072
 class Logging(commands.Cog):
     def __init__(self, client):
         self.client = client
+
     # Commands
     @commands.command(name='logs', help='Gets the x most recent logs; x is an integer with a default of 5.')
     async def GetCommandLogs(self, ctx, *args):

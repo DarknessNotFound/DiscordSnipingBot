@@ -11,6 +11,8 @@ class Admin(commands.Cog):
     def __init__(self, client):
         self.client = client
     # Commands
+
+    #region Players
     @commands.command(name='players', help='Various Player Options: -dis for discord id, -id for id, -n for name, -a for all, and -ad for all deleted')
     async def players(self, ctx, *args):
         """list players
@@ -68,6 +70,48 @@ class Admin(commands.Cog):
         except Exception as ex:
             Log.Error(FILE_NAME, "Players", str(ex))
 
+    @commands.command(name='addplayer', help='Manually enters a players: -d @person -n name. Must have either -d or -n but may have both if desired.')
+    async def AddPlayer(self, ctx, *args):
+        """Manually adds a player to the database.
+        """        
+        try:
+            Log.Command(ctx.author.id, "addplayer", ' '.join(args))
+
+            if DB.AuthorHavePermission(ctx.author.id, ADMIN_PERMISSION_LEVEL) == False:
+                await ctx.send("Action denied: Not high enough permission level.")
+                return
+            
+            await ctx.send("WIP: this command is still under construction.")
+
+            if len(args) < 2:
+                await ctx.send(f"ERROR: {len(args)} arguements given but at least 2 are required, use **>>help addplayer** for help.")
+                return
+
+        except Exception as ex:
+            Log.Error(FILE_NAME, "AddPlayer", str(ex))
+
+    @commands.command(name='renameplayer', help='*>>rename [Player Id] [New Name]* Renames a player.')
+    async def RenamePlayer(self, ctx, *args):
+        """Updates a player's name in the database.
+        """        
+        try:
+            Log.Command(ctx.author.id, "rename", ' '.join(args))
+
+            if DB.AuthorHavePermission(ctx.author.id, ADMIN_PERMISSION_LEVEL) == False:
+                await ctx.send("Action denied: Not high enough permission level.")
+                return
+            
+            await ctx.send("WIP: this command is still under construction.")
+
+            if len(args) < 2:
+                await ctx.send(f"ERROR: {len(args)} arguements given but at least 2 are required, use **>>help renameplayer** for help.")
+                return
+
+        except Exception as ex:
+            Log.Error(FILE_NAME, "RenamePlayer", str(ex))
+    #endregion
+
+    #region Snipes
     @commands.command(name='snipes', help='Shows a list of all the snipes.')
     async def Snipes(self, ctx, *args):
         """Shows the snipes in the database with various flag options.
@@ -114,15 +158,15 @@ class Admin(commands.Cog):
         except Exception as ex:
             Log.Error(FILE_NAME, "ManualSnipe", str(ex))
 
-    @commands.command(name='mansnipe', help='Manual snipe >>mansnipe -a @sniper -d @sniped')
-    async def ManualSnipe(self, ctx, *args):
+    @commands.command(name='addsnipe', help='Manual snipe >>addsnipe -a @sniper -d @sniped')
+    async def AddSnipe(self, ctx, *args):
         """Manually inserts a snipe into the database (records sniper and sniped)
 
         Args:
             ctx (_type_): 
         """        
         try:
-            Log.Command(ctx.author.id, "mansnipe", ' '.join(args))
+            Log.Command(ctx.author.id, "addsnipe", ' '.join(args))
 
             if DB.AuthorHavePermission(ctx.author.id, ADMIN_PERMISSION_LEVEL) == False:
                 await ctx.send("Action denied: Not high enough permission level.")
@@ -131,11 +175,52 @@ class Admin(commands.Cog):
             await ctx.send("WIP: this command is still under construction.")
 
             if len(args) == 0:
-                await ctx.send("ERROR: no arguements given, use >>help players for help.")
+                await ctx.send("ERROR: no arguements given, use >>help addsnipe for help.")
                 return
 
         except Exception as ex:
-            Log.Error(FILE_NAME, "ManualSnipe", str(ex))
+            Log.Error(FILE_NAME, "AddSnipe", str(ex))
+
+    @commands.command(name='removesnipe', help='Put the snipe id for each snipe to remove.')
+    async def RemoveSnipe(self, ctx, *args):
+        """Removes a snipe from the database.
+        """        
+        try:
+            Log.Command(ctx.author.id, "removesnipe", ' '.join(args))
+
+            if DB.AuthorHavePermission(ctx.author.id, ADMIN_PERMISSION_LEVEL) == False:
+                await ctx.send("Action denied: Not high enough permission level.")
+                return
+            
+            await ctx.send("WIP: this command is still under construction.")
+
+            if len(args) == 0:
+                await ctx.send("ERROR: no arguements given, use **>>help removesnipe** for help.")
+                return
+
+        except Exception as ex:
+            Log.Error(FILE_NAME, "RemoveSnipe", str(ex))
+
+    @commands.command(name='updatesnipe', help='>>updatesnipe [snipe ID] [sniper ID] [sniped ID]')
+    async def UpdateSnipe(self, ctx, *args):
+        """Updates a snipe in the database.
+        """        
+        try:
+            Log.Command(ctx.author.id, "updatesnipe", ' '.join(args))
+
+            if DB.AuthorHavePermission(ctx.author.id, ADMIN_PERMISSION_LEVEL) == False:
+                await ctx.send("Action denied: Not high enough permission level.")
+                return
+            
+            await ctx.send("WIP: this command is still under construction.")
+
+            if len(args) != 0:
+                await ctx.send(f"ERROR: only {len(args)} arguements given but requires 3 arguements, use **>>help updatesnipe** for help.")
+                return
+
+        except Exception as ex:
+            Log.Error(FILE_NAME, "UpdateSnipe", str(ex))
+    #endregion
 
 async def setup(client):
     await client.add_cog(Admin(client))
