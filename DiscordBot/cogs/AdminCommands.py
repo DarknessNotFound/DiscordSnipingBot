@@ -5,7 +5,7 @@ import DbManagement as DB
 from discord.ext import commands
 
 FILE_NAME = "AdminCommands"
-ADMIN_PERMISSION_LEVEL = -1
+ADMIN_PERMISSION_LEVEL = 1
 
 class Admin(commands.Cog):
     def __init__(self, client):
