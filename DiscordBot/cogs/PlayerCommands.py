@@ -22,7 +22,7 @@ class Player(commands.Cog):
             Log.Command(UserDiscordId, "snipe", ' '.join(args))
             SnipedExtractedDiscordId = DB.ExtractDiscordId(SnipedArgs)
             SnipedDbIds = []
-            if DB.AuthorHavePermission(ctx.author.id, -1) == False:
+            if DB.AuthorHavePermission(ctx.author.id, "-1") == False:
                 await ctx.send("Action denied: You've been banned nerd.")
                 return
                 
