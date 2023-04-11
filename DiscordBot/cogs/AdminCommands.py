@@ -23,9 +23,9 @@ class Admin(commands.Cog):
         try:
             Log.Command(ctx.author.id, "Players", ' '.join(args))
 
-            #if DB.AuthorHavePermission(ctx.author.id, ADMIN_PERMISSION_LEVEL) == False:
-             #   await ctx.send("Action denied: Not high enough permission level.")
-             #   return
+            if DB.AuthorHavePermission(ctx.author.id, ADMIN_PERMISSION_LEVEL) == False:
+                await ctx.send("Action denied: Not high enough permission level.")
+                return
             
             if len(args) == 0:
                 await ctx.send("ERROR: no arguements given, use >>help players for help.")

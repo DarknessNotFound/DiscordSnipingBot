@@ -5,7 +5,7 @@ import DbManagement as DB
 from discord.ext import commands
 
 FILE_NAME = "SudoAdminCommands"
-SUDO_PERMISSION_LEVEL = 0
+SUDO_PERMISSION_LEVEL = 2
 ADMIN_PERMISSION_LEVEL = 1
 PLAYER_PERMISSION_LEVEL = 0
 
@@ -13,7 +13,7 @@ class SudoAdmin(commands.Cog):
     def __init__(self, client):
         self.client = client
     # Commands
-    @commands.command(name='UpdatePermission', help='Various Player Options: -dis for discord id, -id for id, -n for name, -a for all, and -ad for all deleted')
+    @commands.command(name='UpdatePermission', help='updatepermission [@DiscordMention] [PermissionLevel]')
     async def UpdatePermission(self, ctx, *args):
         """Updates a players permission level. Must be their discord id then the permission level
 
@@ -22,9 +22,9 @@ class SudoAdmin(commands.Cog):
         """        
         try:
             Log.Command(ctx.author.id, "UpdatePermission", ' '.join(args))
-            #if DB.AuthorHavePermission(ctx.author.id, SUDO_PERMISSION_LEVEL) == False:
-            #    await ctx.send("Action denied: Not high enough permission level.")
-            #    return
+            if DB.AuthorHavePermission(ctx.author.id, SUDO_PERMISSION_LEVEL) == False:
+                await ctx.send("Action denied: Not high enough permission level.")
+                return
             
             if len(args) != 2:
                 await ctx.send("Have have exactly 2 arguements. Only " + str(len(args)) + " provided.")
@@ -33,7 +33,7 @@ class SudoAdmin(commands.Cog):
             DiscordId = DB.ExtractDiscordId(args[0])
             Level = args[1]
 
-            if DiscordId == "":
+            if len(DiscordId) == 0:
                 await ctx.send("Discord Id not valid")
                 return
             
@@ -42,10 +42,10 @@ class SudoAdmin(commands.Cog):
                 return
 
             if int(Level) > 9:
-                Level = 10
+                Level = 9
 
-            Player = DB.ReadPlayerDiscordId(DiscordId=DiscordId)
-            
+            Player = DB.ReadPlayerDiscordId(DiscordId=DiscordId[0])
+
             if len(Player) == 0:
                 await ctx.send("Player not found.")
                 return
@@ -55,7 +55,7 @@ class SudoAdmin(commands.Cog):
                 return
             
             DB.UpdatePlayerPermissionLevel(Player[0], Level)
-            await ctx.send(f"Updated <@{DiscordId}>'s permission level to {Level}")
+            await ctx.send(f"Updated <@{DiscordId[0]}>'s permission level to {Level}")
 
         except Exception as ex:
             Log.Error(FILE_NAME, "Players", str(ex))

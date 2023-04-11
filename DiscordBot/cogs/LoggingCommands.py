@@ -4,7 +4,6 @@ import Logging as Log
 from discord.ext import commands
 
 FILE_NAME = "LoggingCommands"
-MY_ID = 295627266719875072
 
 class Logging(commands.Cog):
     def __init__(self, client):
@@ -17,10 +16,6 @@ class Logging(commands.Cog):
         Gets the most recent log commands from the database and sends them as a formated embed.
         """
         try:
-            if(ctx.author.id != MY_ID):
-                await ctx.send("You are not Grant, stop that.")
-                return
-            
             Logs = []
             if len(args) > 0:
                 if args[0].isdigit():
