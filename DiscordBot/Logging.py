@@ -40,8 +40,8 @@ def CreateLoggingDB() -> None:
             Message TEXT NOT NULL,
     """    
     try:
-        print("Creating the Logging DB started.")
         conn = sqlite3.connect(CONNECTION_PATH)
+        print("Creating the Logging DB started.")
 
         CreateUsersTable(conn)
         CreateCommandsTable(conn)

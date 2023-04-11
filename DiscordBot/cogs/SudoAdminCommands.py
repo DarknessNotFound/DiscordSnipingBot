@@ -37,7 +37,7 @@ class SudoAdmin(commands.Cog):
                 await ctx.send("Discord Id not valid")
                 return
             
-            if Level.isdigit() == False:
+            if Level.isdigit() == False and Level != "-1":
                 await ctx.send("Permission input isn't valid. Must be a number 0-9")
                 return
 
@@ -51,7 +51,7 @@ class SudoAdmin(commands.Cog):
                 return
             
             if Player[3] > 9:
-                ctx.send("You can't try to change the owners permission level")
+                await ctx.send("You can't try to change the owners permission level")
                 return
             
             DB.UpdatePlayerPermissionLevel(Player[0], Level)
