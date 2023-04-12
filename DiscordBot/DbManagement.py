@@ -591,6 +591,44 @@ def ReadAllSnipes() -> list:
     finally:
         conn.close()
         return result
+
+def ReadSnipesOfSniper(SniperId: int):
+    result = []
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"SELECT * FROM {SNIPES_T} WHERE IsDeleted=0 AND SniperId=?;"
+        param = (SniperId,)
+        cur = conn.execute(sql, param)
+        rows = cur.fetchall()
+
+        for row in rows:
+            result.append(list(row))
+
+    except Exception as ex:
+        Log.Error(FILE_NAME, "ReadSnipesOfSniper", str(ex))
+        result = []
+    finally:
+        conn.close()
+        return result
+    
+def ReadSnipesOfSniped(SnipedId: int):
+    result = []
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"SELECT * FROM {SNIPES_T} WHERE IsDeleted=0 AND SnipedId=?;"
+        param = (SnipedId,)
+        cur = conn.execute(sql, param)
+        rows = cur.fetchall()
+
+        for row in rows:
+            result.append(list(row))
+
+    except Exception as ex:
+        Log.Error(FILE_NAME, "ReadSnipesOfSniped", str(ex))
+        result = []
+    finally:
+        conn.close()
+        return result
 #endregion
 
 #region "Update Commands"

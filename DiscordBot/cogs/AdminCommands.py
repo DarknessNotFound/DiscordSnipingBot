@@ -212,13 +212,21 @@ class Admin(commands.Cog):
             
             await ctx.send("WIP: this command is still under construction.")
 
-            Snipes = []
+            GroupOfSnipes = []
             if len(args) == 0: # Most recent 5 snipes
-                Snipes = DB.ReadSnipes()
+                GroupOfSnipes.append(("5 Most Recent Snipes", DB.ReadSnipes()))
             elif args[0] == '-a': # All snipes.
-                Snipes = DB.ReadAllSnipes()
+                GroupOfSnipes.append(("All Snipes", DB.ReadAllSnipes()))
             elif args[0] == '-pid': # All snipes related to a player's id.
-                await ctx.send("WIP: this flag is still under construction.")
+                if len(args) < 2:
+                    await ctx.send("-pid requires 2 arguements, only 1 provided.")
+                elif args[1].isdigit() == False:
+                    await ctx.send("-pid requires an integer input for the player id.")
+                elif DB.PlayerExistsId(int(args[1])) == False:
+                    await ctx.send("Player not found.")
+                else:
+                    GroupOfSnipes.append(("Confirmed Kills", DB.ReadSnipesOfSniper(int(args[1]))))
+                    GroupOfSnipes.append(("Victim", DB.ReadSnipesOfSniped(int(args[1]))))
             elif args[0] == '-did': # All snipes related to a player via @'ing them.
                 await ctx.send("WIP: this flag is still under construction.")
             elif args[0] == '-d': # All snipes x days ago (default today).
@@ -231,33 +239,33 @@ class Admin(commands.Cog):
                 await ctx.send("WIP: this flag is still under construction.")
             else:
                 if args[0].isdigit():
-                    Snipes = DB.ReadSnipes(int(args[0]))
+                    GroupOfSnipes.append((f"{args[0]} Most Recent Snipes", DB.ReadSnipes(int(args[0]))))
                 else:
-                    Snipes = DB.ReadSnipes()
-    
-            msg = discord.Embed(
-                title="All Snipes"
-            )
+                    GroupOfSnipes.append(("5 Most Recent Snipes", DB.ReadSnipes()))
 
-            count = 0
-            for snipe in Snipes:
-                count += 1
-                snipeString = SnipeToText(snipe=snipe)
-                msg.add_field(
-                    name="",
-                    value=snipeString,
-                    inline=True
+            for SnipeGroup in GroupOfSnipes:    
+                msg = discord.Embed(
+                    title=SnipeGroup[0]
                 )
-                if count >= 24:
-                    await ctx.send(embed=msg)
-                    count = 0
-                    msg.clear_fields()
-            
-            if len(Snipes) == 0:
-                await ctx.send("No snipes(s) found.")
-            else:
-                await ctx.send(embed=msg)
 
+                count = 0
+                for snipe in SnipeGroup[1]:
+                    count += 1
+                    snipeString = SnipeToText(snipe=snipe)
+                    msg.add_field(
+                        name="",
+                        value=snipeString,
+                        inline=True
+                    )
+                    if count >= 24:
+                        await ctx.send(embed=msg)
+                        count = 0
+                        msg.clear_fields()
+                if count > 0:
+                    await ctx.send(embed=msg)
+            
+            if len(GroupOfSnipes) == 0:
+                await ctx.send("No snipes(s) found.")
 
         except Exception as ex:
             print(f"ERROR: In file \"{FILE_NAME}\" of command \"Snipes\"")
