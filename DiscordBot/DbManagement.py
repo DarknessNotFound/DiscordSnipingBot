@@ -333,7 +333,7 @@ def PlayerExistsDiscordId(DiscordId: str) -> bool:
         param = ([str(DiscordId)])
         cur = conn.execute(sql, param)
         NumRows = len(cur.fetchall())
-        result = NumRows == 1
+        result = NumRows != 0
 
         if cur.rowcount > 1:
             raise Exception(f"Returned {NumRows} rows.")
@@ -573,6 +573,24 @@ def ReadSnipes(NumSnipes: int = 5) -> list:
     finally:
         conn.close()
         return result
+    
+def ReadAllSnipess() -> list:
+    result = []
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"SELECT * FROM {PLAYERS_T} WHERE IsDeleted=0;"
+        cur = conn.execute(sql)
+        rows = cur.fetchall()
+
+        for row in rows:
+            result.append(list(row))
+        
+    except Exception as ex:
+        Log.Error(FILE_NAME, "ReadAllPlayers", str(ex))
+        result = []
+    finally:
+        conn.close()
+        return result
 #endregion
 
 #region "Update Commands"
@@ -580,7 +598,23 @@ def UpdatePlayerDiscordId(Id: int, DiscordId: str) -> None:
     return
 
 def UpdatePlayerName(Id: int, Name: str):
-    return
+    Updated = False
+    if PlayerExistsId(Id=Id) == False:
+        return False
+    
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"UPDATE {PLAYERS_T} SET Name=? WHERE Id=?"
+        param = (Name, Id)
+        cur = conn.execute(sql, param)
+        conn.commit()
+        Updated = True
+    except Exception as ex:
+        print("Error in UpdatePlayerPermissionLevel: " + str(ex))
+        Log.Error(FILE_NAME, "UpdatePlayerPermissionLevel", str(ex))
+    finally:
+        conn.close()
+        return Updated
 
 def UpdatePlayerPermissionLevel(Id: int, PermissionLevel: int):
     Updated = False

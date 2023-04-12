@@ -7,12 +7,33 @@ from discord.ext import commands
 FILE_NAME = "AdminCommands"
 ADMIN_PERMISSION_LEVEL = 1
 
+def ExtractPlayerName(player: list) -> str:
+    if len(player) < 4:
+        return ""
+    
+    if player[1] != "":
+        return f"<@{player[1]}>"
+    else:
+        return player[2]
+
+def SnipeToText(snipe: list) -> str:
+    if len(snipe) < 5:
+        return ""
+    SniperP = DB.ReadPlayerId(snipe[2])
+    Sniper = ExtractPlayerName(SniperP)
+
+    SnipedP = DB.ReadPlayerId(snipe[3])
+    Sniped = ExtractPlayerName(SnipedP)
+
+    return f">>> **Id**: {snipe[0]}\n**Timestamp**: {snipe[1]}\n**Sniper**: {Sniper}\n**Sniped**: {Sniped}"
+
 class Admin(commands.Cog):
     def __init__(self, client):
         self.client = client
     # Commands
 
     #region Players
+
     @commands.command(name='players', help='Various Player Options: -dis for discord id, -id for id, -n for name, -a for all, and -ad for all deleted')
     async def players(self, ctx, *args):
         """list players
@@ -35,7 +56,11 @@ class Admin(commands.Cog):
             if args[0] == "-dis" and len(args) > 1:
                 DiscordIds = DB.ExtractDiscordId(' '.join(args[1:]))
                 for discordId in DiscordIds:
-                    PlayersToSend.append(DB.ReadPlayerDiscordId(discordId))
+                    player = DB.ReadPlayerDiscordId(discordId)
+                    if len(player) == 0:
+                        await ctx.send(f"<@{discordId}> does not exists in the database.")
+                    else:
+                        PlayersToSend.append(player)
             
             if args [0] == '-a':
                 PlayersToSend = DB.ReadAllPlayers()
@@ -48,29 +73,30 @@ class Admin(commands.Cog):
                 title="Player(s)"
             )
             
-            if len(PlayersToSend) > 25:
-                    count = 0
-                    for p in PlayersToSend:
-                        playerString = ">>> **Id**: {}\n**Discord Id**: <@{}>\n**Permission Level**: {}".format(p[0], p[1], p[3])
-                        msg.add_field(name=f"{p[2]}", value=playerString, inline=False)
-                        count += 1
-                        if count >= 24:
-                            await ctx.send(embed=msg)
-                            count = 0
-                            msg.clear_fields()
-            else:
-                for p in PlayersToSend:
+            count = 0
+            for p in PlayersToSend:
+                if p[1] == "": #If discord id is empty
+                    playerString = ">>> **Id**: {}\n**Discord Id**: {}\n**Permission Level**: {}".format(p[0], p[1], p[3])
+                else:
                     playerString = ">>> **Id**: {}\n**Discord Id**: <@{}>\n**Permission Level**: {}".format(p[0], p[1], p[3])
-                    msg.add_field(name=f"{p[2]}", value=playerString, inline=False)
-                await ctx.send(embed=msg)
+                msg.add_field(name=f"{p[2]}", value=playerString, inline=False)
+                count += 1
+                if count >= 24:
+                    await ctx.send(embed=msg)
+                    count = 0
+                    msg.clear_fields()
             
             if len(PlayersToSend) == 0:
                 await ctx.send("No player(s) found.")
+            else:
+                await ctx.send(embed=msg)
 
         except Exception as ex:
+            print(f"ERROR: In file \"{FILE_NAME}\" of command \"Players\"")
+            print(f"Message: {str(ex)}")
             Log.Error(FILE_NAME, "Players", str(ex))
 
-    @commands.command(name='addplayer', help='Manually enters a players: -d @person -n name. Must have either -d or -n but may have both if desired.')
+    @commands.command(name='addplayer', help='Enter a player into the database. Put a list of @mentions for adding via discord id or just their name for a single individual (although this can not add multiple)')
     async def AddPlayer(self, ctx, *args):
         """Manually adds a player to the database.
         """        
@@ -81,16 +107,56 @@ class Admin(commands.Cog):
                 await ctx.send("Action denied: Not high enough permission level.")
                 return
             
-            await ctx.send("WIP: this command is still under construction.")
-
-            if len(args) < 2:
-                await ctx.send(f"ERROR: {len(args)} arguements given but at least 2 are required, use **>>help addplayer** for help.")
+            if len(args) == 0:
+                await ctx.send(f"ERROR: {len(args)} arguements given but at least 1 is required, use **>>help addplayer** for help.")
                 return
+            
+            IdsCreated = []
+            DiscordIds = DB.ExtractDiscordId(' '.join(args))
+            if len(DiscordIds) > 0:
+                for id in DiscordIds:
+                    if(DB.PlayerExistsDiscordId(id)):
+                        continue
+
+                    User = await self.client.fetch_user(id)
+                    SnipedName = User.display_name
+                    IdsCreated.append(DB.CreatePlayer(DiscordId=id, Name=SnipedName))
+            else:
+                Name = ' '.join(args)
+                IdsCreated.append(DB.CreatePlayer(Name=Name))
+            
+            PlayersToSend = []
+            for id in IdsCreated:
+                PlayersToSend.append(DB.ReadPlayerId(id))
+
+            msg = discord.Embed(
+                title="Player(s) Created"
+            )
+
+            count = 0
+            for p in PlayersToSend:
+                if p[1] == "": #If discord id is empty
+                    playerString = ">>> **Id**: {}\n**Discord Id**: {}\n**Permission Level**: {}".format(p[0], p[1], p[3])
+                else:
+                    playerString = ">>> **Id**: {}\n**Discord Id**: <@{}>\n**Permission Level**: {}".format(p[0], p[1], p[3])
+                msg.add_field(name=f"{p[2]}", value=playerString, inline=False)
+                count += 1
+                if count >= 24:
+                    await ctx.send(embed=msg)
+                    count = 0
+                    msg.clear_fields()
+            
+            if len(PlayersToSend) == 0:
+                await ctx.send("No player(s) added.")
+            else:
+                await ctx.send(embed=msg)
 
         except Exception as ex:
+            print(f"ERROR: In file \"{FILE_NAME}\" of command \"Players\"")
+            print(f"Message: {str(ex)}")
             Log.Error(FILE_NAME, "AddPlayer", str(ex))
 
-    @commands.command(name='renameplayer', help='*>>rename [Player Id] [New Name]* Renames a player.')
+    @commands.command(name='rename', help='*>>rename [Player Id] [New Name]* Renames a player.')
     async def RenamePlayer(self, ctx, *args):
         """Updates a player's name in the database.
         """        
@@ -106,12 +172,30 @@ class Admin(commands.Cog):
             if len(args) < 2:
                 await ctx.send(f"ERROR: {len(args)} arguements given but at least 2 are required, use **>>help renameplayer** for help.")
                 return
+            
+            PlayerId = args[0]
+            if PlayerId.isdigit() == False:
+                await ctx.send(f"ERROR: Player Id arguement must be a number, \"{args[0]}\" given.")
+                return
+            
+            if DB.PlayerExistsId(PlayerId):
+                Name = ' '.join(args[1:])
+                Updated = DB.UpdatePlayerName(PlayerId, Name=Name)
+                if Updated:
+                    await ctx.send(f"User Id {PlayerId} name updated to \"{Name}\"")
+                else:
+                    await ctx.send("Error: Didn\'t update.")
+            else:
+                await ctx.send(f"Error: Player Id {PlayerId} does not exists.")
 
         except Exception as ex:
+            print(f"ERROR: In file \"{FILE_NAME}\" of command \"Players\"")
+            print(f"Message: {str(ex)}")
             Log.Error(FILE_NAME, "RenamePlayer", str(ex))
     #endregion
 
     #region Snipes
+
     @commands.command(name='snipes', help='Shows a list of all the snipes.')
     async def Snipes(self, ctx, *args):
         """Shows the snipes in the database with various flag options.
@@ -128,9 +212,9 @@ class Admin(commands.Cog):
             
             await ctx.send("WIP: this command is still under construction.")
 
-            send = 0
+            Snipes = []
             if len(args) == 0: # Most recent 5 snipes
-                send = 5
+                Snipes = DB.ReadSnipes()
             elif args[0] == '-a': # All snipes.
                 await ctx.send("WIP: this flag is still under construction.")
             elif args[0] == '-pid': # All snipes related to a player's id.
@@ -141,17 +225,15 @@ class Admin(commands.Cog):
                 await ctx.send("WIP: this flag is still under construction.")
             elif args[0] == '-dr': # All snipes x to y days ago (default today or x to today).
                 await ctx.send("WIP: this flag is still under construction.")
-            elif args[0] == '-s': # Snipes via their id.
+            elif args[0] == '-sid': # Snipes via their id.
                 await ctx.send("WIP: this flag is still under construction.")
-            elif args[0] == '-sr': # Snipes with ids (inclusive) within range.
+            elif args[0] == '-sidr': # Snipes with ids (inclusive) within range.
                 await ctx.send("WIP: this flag is still under construction.")
             else:
-                send = args[0]
-                if not send.isdigit():
-                    send = 5
-
-            if send > 0:
-                return
+                if not args[0].isdigit():
+                    Snipes = DB.ReadSnipes()
+                else:
+                    Snipes = DB.ReadSnipes(args[0])
     
             
 
