@@ -574,11 +574,11 @@ def ReadSnipes(NumSnipes: int = 5) -> list:
         conn.close()
         return result
     
-def ReadAllSnipess() -> list:
+def ReadAllSnipes() -> list:
     result = []
     try:
         conn = sqlite3.connect(CONNECTION_PATH)
-        sql = f"SELECT * FROM {PLAYERS_T} WHERE IsDeleted=0;"
+        sql = f"SELECT * FROM {SNIPES_T} WHERE IsDeleted=0;"
         cur = conn.execute(sql)
         rows = cur.fetchall()
 

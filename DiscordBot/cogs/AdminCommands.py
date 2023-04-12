@@ -216,7 +216,7 @@ class Admin(commands.Cog):
             if len(args) == 0: # Most recent 5 snipes
                 Snipes = DB.ReadSnipes()
             elif args[0] == '-a': # All snipes.
-                await ctx.send("WIP: this flag is still under construction.")
+                Snipes = DB.ReadAllSnipes()
             elif args[0] == '-pid': # All snipes related to a player's id.
                 await ctx.send("WIP: this flag is still under construction.")
             elif args[0] == '-did': # All snipes related to a player via @'ing them.
@@ -230,15 +230,39 @@ class Admin(commands.Cog):
             elif args[0] == '-sidr': # Snipes with ids (inclusive) within range.
                 await ctx.send("WIP: this flag is still under construction.")
             else:
-                if not args[0].isdigit():
-                    Snipes = DB.ReadSnipes()
+                if args[0].isdigit():
+                    Snipes = DB.ReadSnipes(int(args[0]))
                 else:
-                    Snipes = DB.ReadSnipes(args[0])
+                    Snipes = DB.ReadSnipes()
     
+            msg = discord.Embed(
+                title="All Snipes"
+            )
+
+            count = 0
+            for snipe in Snipes:
+                count += 1
+                snipeString = SnipeToText(snipe=snipe)
+                msg.add_field(
+                    name="",
+                    value=snipeString,
+                    inline=True
+                )
+                if count >= 24:
+                    await ctx.send(embed=msg)
+                    count = 0
+                    msg.clear_fields()
             
+            if len(Snipes) == 0:
+                await ctx.send("No snipes(s) found.")
+            else:
+                await ctx.send(embed=msg)
+
 
         except Exception as ex:
-            Log.Error(FILE_NAME, "ManualSnipe", str(ex))
+            print(f"ERROR: In file \"{FILE_NAME}\" of command \"Snipes\"")
+            print(f"Message: {str(ex)}")
+            Log.Error(FILE_NAME, "snipes", str(ex))
 
     @commands.command(name='addsnipe', help='Manual snipe >>addsnipe -a @sniper -d @sniped')
     async def AddSnipe(self, ctx, *args):
