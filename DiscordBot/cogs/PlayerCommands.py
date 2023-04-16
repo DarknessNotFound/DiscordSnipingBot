@@ -42,10 +42,14 @@ class Player(commands.Cog):
                     SnipedDbIds.append(DB.CreatePlayer(DiscordId=DiscordId, Name=SnipedName))
 
             if len(SnipedExtractedDiscordId) == 0:
-                if DB.PlayerExistsName(Name=SnipedArgs):
-                    SnipedDbIds.append(DB.ReadPlayerName(Name=SnipedArgs)[0])
+                NewName = ""
+                for letter in SnipedArgs:
+                    if letter != "@":
+                        NewName += letter
+                if DB.PlayerExistsName(Name=NewName):
+                    SnipedDbIds.append(DB.ReadPlayerName(Name=NewName)[0])
                 else:
-                    SnipedDbIds.append(DB.CreatePlayer(Name=SnipedArgs))
+                    SnipedDbIds.append(DB.CreatePlayer(Name=NewName))
 
             for SnipedId in SnipedDbIds:
                 if SnipedId == SniperId:
@@ -56,6 +60,8 @@ class Player(commands.Cog):
                 await ctx.send(f"{SnipeId}: {DB.PlayerDisplayName(SniperId)} sniped {DB.PlayerDisplayName(SnipedId)}")
         except Exception as ex:
             Log.Error(FILE_NAME, "snipe", str(ex))
+            print(f"ERROR: In file \"{FILE_NAME}\" of command \"snipe\"")
+            print(f"Message: {str(ex)}")
             await ctx.send("Error recording sniping, please try again.")
 
     @commands.command(name='rules', help='Sends out the rules of the game')
@@ -64,7 +70,9 @@ class Player(commands.Cog):
         """        
         try:
             Log.Command(ctx.author.id, "rules", ' '.join(args))
-
+            if DB.AuthorHavePermission(ctx.author.id, 0) == False:
+                await ctx.send("Action denied: You've been banned nerd.")
+                return
             msg = discord.Embed(
                 title='Rules and Tutorial'
             )

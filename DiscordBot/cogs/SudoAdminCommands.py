@@ -54,11 +54,17 @@ class SudoAdmin(commands.Cog):
                 await ctx.send("You can't try to change the owners permission level")
                 return
             
-            DB.UpdatePlayerPermissionLevel(Player[0], Level)
+            if Level > -1:
+                DB.UpdatePlayerPermissionLevel(Player[0], Level)
+            else:
+                DB.UpdatePlayerPermissionLevel(Player[0], -1)
             await ctx.send(f"Updated <@{DiscordId[0]}>'s permission level to {Level}")
 
         except Exception as ex:
             Log.Error(FILE_NAME, "Players", str(ex))
+            print(f"ERROR: In file \"{FILE_NAME}\" of command \"Players\"")
+            print(f"Message: {str(ex)}")
+            await ctx.send("Error: An error has occured, please try again.")
 
 async def setup(client):
     await client.add_cog(SudoAdmin(client))

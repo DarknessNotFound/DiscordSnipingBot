@@ -644,7 +644,7 @@ def UpdatePlayerName(Id: int, Name: str):
         conn = sqlite3.connect(CONNECTION_PATH)
         sql = f"UPDATE {PLAYERS_T} SET Name=? WHERE Id=?;"
         param = (Name, Id)
-        cur = conn.execute(sql, param)
+        conn.execute(sql, param)
         conn.commit()
         Updated = True
     except Exception as ex:
@@ -663,7 +663,7 @@ def UpdatePlayerPermissionLevel(Id: int, PermissionLevel: int):
         conn = sqlite3.connect(CONNECTION_PATH)
         sql = f"UPDATE {PLAYERS_T} SET PermissionLevel=? WHERE Id=?"
         param = (PermissionLevel, Id)
-        cur = conn.execute(sql, param)
+        conn.execute(sql, param)
         conn.commit()
         Updated = True
     except Exception as ex:

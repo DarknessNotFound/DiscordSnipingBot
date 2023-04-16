@@ -73,6 +73,10 @@ class Admin(commands.Cog):
                 title="Player(s)"
             )
             
+            if len(PlayersToSend) == 0:
+                await ctx.send("No player(s) found.")
+                return
+            
             count = 0
             for p in PlayersToSend:
                 if p[1] == "": #If discord id is empty
@@ -85,10 +89,8 @@ class Admin(commands.Cog):
                     await ctx.send(embed=msg)
                     count = 0
                     msg.clear_fields()
-            
-            if len(PlayersToSend) == 0:
-                await ctx.send("No player(s) found.")
-            else:
+
+            if count > 0:
                 await ctx.send(embed=msg)
 
         except Exception as ex:
