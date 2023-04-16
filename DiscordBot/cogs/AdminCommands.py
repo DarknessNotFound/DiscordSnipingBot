@@ -295,10 +295,10 @@ class Admin(commands.Cog):
         except Exception as ex:
             Log.Error(FILE_NAME, "AddSnipe", str(ex))
 
-    @commands.command(name='removesnipe', help='Put the snipe id for each snipe to remove.')
+    @commands.command(name='removesnipe', help='Put the snipe id for each snipe to remove (space between each snipe id).')
     async def RemoveSnipe(self, ctx, *args):
         """Removes a snipe from the database.
-        """        
+        """
         try:
             Log.Command(ctx.author.id, "removesnipe", ' '.join(args))
 
@@ -311,8 +311,39 @@ class Admin(commands.Cog):
             if len(args) == 0:
                 await ctx.send("ERROR: no arguements given, use **>>help removesnipe** for help.")
                 return
+            
+            results = []
+            for id in args:
+                if id.isdigit() == False:
+                    MsgToSend = "Argument is not a digit."
+                elif DB.SnipeIdExists(int(id)) == False:
+                    MsgToSend = "Id not found in the database."
+                else:
+                    MsgToSend = DB.DeleteSnipe(id)
+                results.append((str(id), MsgToSend))
+            
+            msg = discord.Embed(
+                title="Snipes Removal"
+            )
+
+            count = 0
+            for result in results:
+                count += 1
+                msg.add_field(
+                    name=result[0],
+                    value="Result: " + result[1],
+                    inline=True
+                )
+                if count >= 24:
+                    await ctx.send(embed=msg)
+                    count = 0
+                    msg.clear_fields()
+            if count > 0:
+                await ctx.send(embed=msg)
 
         except Exception as ex:
+            print(f"ERROR: In file \"{FILE_NAME}\" of command \"RemoveSnipe\"")
+            print(f"Message: {str(ex)}")
             Log.Error(FILE_NAME, "RemoveSnipe", str(ex))
 
     @commands.command(name='updatesnipe', help='>>updatesnipe [snipe ID] [sniper ID] [sniped ID]')

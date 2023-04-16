@@ -532,8 +532,8 @@ def SnipeIdExists(Id: int) -> bool:
     try:
         result = False
         conn = sqlite3.connect(CONNECTION_PATH)
-        sql = f"SELECT * FROM {SNIPES_DB} WHERE Id=? AND IsDeleted=0"
-        param = ([str(Id)])
+        sql = f"SELECT * FROM {SNIPES_T} WHERE Id=? AND IsDeleted=0;"
+        param = (Id,)
         cur = conn.execute(sql, param)
         NumRows = len(cur.fetchall())
         result = NumRows == 1
@@ -543,7 +543,7 @@ def SnipeIdExists(Id: int) -> bool:
 
     except Exception as ex:
         print(f"{FILE_NAME} -- SnipeIdExists -- {ex}")
-        raise ex
+        result = False
 
     finally:
         conn.close()
@@ -565,7 +565,7 @@ def ReadSnipes(NumSnipes: int = 5) -> list:
     
         conn = sqlite3.connect(CONNECTION_PATH)
         cur = conn.cursor()
-        data = cur.execute(f"SELECT * FROM {SNIPES_T} ORDER BY Timestamp DESC LIMIT {NumSnipes};").fetchall()
+        data = cur.execute(f"SELECT * FROM {SNIPES_T} WHERE IsDeleted=0 ORDER BY Timestamp DESC LIMIT {NumSnipes};").fetchall()
         result = [list(row) for row in data]
     except Exception as ex:
         print(f"{FILE_NAME} -- ReadSnipes -- {ex}")
@@ -642,7 +642,7 @@ def UpdatePlayerName(Id: int, Name: str):
     
     try:
         conn = sqlite3.connect(CONNECTION_PATH)
-        sql = f"UPDATE {PLAYERS_T} SET Name=? WHERE Id=?"
+        sql = f"UPDATE {PLAYERS_T} SET Name=? WHERE Id=?;"
         param = (Name, Id)
         cur = conn.execute(sql, param)
         conn.commit()
@@ -679,4 +679,25 @@ def UpdatePlayerPermissionLevel(Id: int, PermissionLevel: int):
 #region "Delete Commands"
 def DeletePlayer(Id: int) -> None:
     return
+
+def DeleteSnipe(Id: int) -> str:
+    Updated = "Didn't update."
+    if SnipeIdExists(Id=Id) == False:
+        return "Snipe Id doesn't exists."
+    
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"UPDATE {SNIPES_T} SET IsDeleted=1 WHERE Id=?;"
+        param = (Id,)
+        conn.execute(sql, param)
+        conn.commit()
+        Updated = f"Removed snipe of id \"{Id}\" from the database."
+    except Exception as ex:
+        print(f"ERROR: In file \"{FILE_NAME}\" of function \"DeleteSnipe\"")
+        print(f"Message: {str(ex)}")
+        Log.Error(FILE_NAME, "UpdatePlayerPermissionLevel", str(ex))
+        Updated = "ERROR: An error has occured..."
+    finally:
+        conn.close()
+        return Updated
 #endregion
