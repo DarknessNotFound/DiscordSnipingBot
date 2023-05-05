@@ -78,11 +78,15 @@ class Admin(commands.Cog):
                 return
             
             count = 0
+
+
             for p in PlayersToSend:
+                Snipes = DB.CalcSnipes(p[0])
+                Deaths = DB.CalcSniped(p[0])
                 if p[1] == "": #If discord id is empty
-                    playerString = ">>> **Id**: {}\n**Discord Id**: {}\n**Permission Level**: {}".format(p[0], p[1], p[3])
+                    playerString = ">>> **Id**: {}\n**Discord Id**: {}\n**Permission Level**: {}\n**Snipes**: {}\n**Deaths**: {}".format(p[0], p[1], p[3], Snipes, Deaths)
                 else:
-                    playerString = ">>> **Id**: {}\n**Discord Id**: <@{}>\n**Permission Level**: {}".format(p[0], p[1], p[3])
+                    playerString = ">>> **Id**: {}\n**Discord Id**: <@{}>\n**Permission Level**: {}\n**Snipes**: {}\n**Deaths**: {}".format(p[0], p[1], p[3], Snipes, Deaths)
                 msg.add_field(name=f"{p[2]}", value=playerString, inline=False)
                 count += 1
                 if count >= 24:

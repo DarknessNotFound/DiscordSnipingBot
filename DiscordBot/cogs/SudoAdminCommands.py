@@ -68,5 +68,78 @@ class SudoAdmin(commands.Cog):
             print(f"Message: {str(ex)}")
             await ctx.send("Error: An error has occured, please try again.")
 
+    @commands.command(name='removeplayer', help='*>>rename [Player Id]* Removes a player from the database.')
+    async def RemovePlayer(self, ctx, *args):
+        """Removes a player from the database.
+        """        
+        try:
+            Log.Command(ctx.author.id, "remove player", ' '.join(args))
+
+            if DB.AuthorHavePermission(ctx.author.id, SUDO_PERMISSION_LEVEL) == False:
+                await ctx.send("Action denied: Not high enough permission level.")
+                return
+            
+            PlayerId = args[0]
+            if PlayerId.isdigit() == False:
+                await ctx.send(f"ERROR: Player Id arguement must be a number, \"{args[0]}\" given.")
+                return
+            else:
+                PlayerId = int(PlayerId)
+
+            if DB.PlayerExistsId(PlayerId):
+                PlayerPermissionLevel = DB.GetPermissionLevel(PlayerId)
+                
+                if PlayerPermissionLevel > 0:
+                    await ctx.send("Can't remove a player with admin level permissions.")
+                    return
+                
+                Updated = DB.DeletePlayer(PlayerId)
+                await ctx.send(Updated)
+            else:
+                await ctx.send(f"Error: Player Id {PlayerId} does not exists.")
+
+        except Exception as ex:
+            print(f"ERROR: In file \"{FILE_NAME}\" of command \"Players\"")
+            print(f"Message: {str(ex)}")
+            Log.Error(FILE_NAME, "RenamePlayer", str(ex))
+            await ctx.send("ERROR: and error has occured.")
+
+    @commands.command(name='undoremoveplayer', help='*>>rename [Player Id]* Removes a player from the database.')
+    async def RemovePlayer(self, ctx, *args):
+        """Undo removing player.
+        """        
+        try:
+            Log.Command(ctx.author.id, "undo remove player", ' '.join(args))
+
+            if DB.AuthorHavePermission(ctx.author.id, SUDO_PERMISSION_LEVEL) == False:
+                await ctx.send("Action denied: Not high enough permission level.")
+                return
+            
+            PlayerId = args[0]
+            if PlayerId.isdigit() == False:
+                await ctx.send(f"ERROR: Player Id arguement must be a number, \"{args[0]}\" given.")
+                return
+            else:
+                PlayerId = int(PlayerId)
+
+            if DB.PlayerExistsId(PlayerId):
+                PlayerPermissionLevel = DB.GetPermissionLevel(PlayerId)
+                
+                if PlayerPermissionLevel > 0:
+                    await ctx.send("Can't remove a player with admin level permissions.")
+                    return
+                
+                Updated = DB.DeletePlayer(PlayerId)
+                await ctx.send(Updated)
+            else:
+                await ctx.send(f"Error: Player Id {PlayerId} does not exists.")
+
+        except Exception as ex:
+            print(f"ERROR: In file \"{FILE_NAME}\" of command \"Players\"")
+            print(f"Message: {str(ex)}")
+            Log.Error(FILE_NAME, "RenamePlayer", str(ex))
+            await ctx.send("ERROR: and error has occured.")
+
+
 async def setup(client):
     await client.add_cog(SudoAdmin(client))

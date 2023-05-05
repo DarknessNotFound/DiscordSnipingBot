@@ -429,6 +429,69 @@ def ReadPlayerDiscordId(DiscordId: str) -> list:
     finally:
         conn.close()
         return result
+    
+def GetPermissionLevel(Id: int) -> int:
+    """Returns the permission level of a given player Id.
+
+    Args:
+        Id (int): The player Id int the database.
+
+    Returns:
+        int: The permission level
+    """
+    try:
+        result = 0
+        conn = sqlite3.connect(CONNECTION_PATH)
+        if PlayerExistsId(Id=Id):
+            sql = f"SELECT * FROM {PLAYERS_T} WHERE Id=?;"
+            param = (Id,)
+            cur = conn.execute(sql, param)
+            row = cur.fetchone()
+            result = list(row)[3]
+        else:
+            print(f"Player Id:{Id} does not exists.")
+    except Exception as ex:
+        Log.Error(FILE_NAME, "ReadPlayerDiscordId", str(ex))
+    finally:
+        conn.close()
+        return result
+    
+def CalcSnipes(Id: int) -> int:
+    try:
+        result = 0
+        conn = sqlite3.connect(CONNECTION_PATH)
+        if PlayerExistsId(Id=Id):
+            sql = f"SELECT * FROM {SNIPES_T} WHERE SniperId=?;"
+            param = (Id,)
+            cur = conn.execute(sql, param)
+            row = cur.fetchall()
+            result = len(list(row))
+        else:
+            print(f"Player Id:{Id} does not exists.")
+    except Exception as ex:
+        Log.Error(FILE_NAME, "CalcSnipes", str(ex))
+    finally:
+        conn.close()
+        return result
+
+def CalcSniped(Id: int) -> int:
+    try:
+        result = 0
+        conn = sqlite3.connect(CONNECTION_PATH)
+        if PlayerExistsId(Id=Id):
+            sql = f"SELECT * FROM {SNIPES_T} WHERE SnipedId=?;"
+            param = (Id,)
+            cur = conn.execute(sql, param)
+            row = cur.fetchall()
+            result = len(list(row))
+        else:
+            print(f"Player Id:{Id} does not exists.")
+    except Exception as ex:
+        Log.Error(FILE_NAME, "CalcSniped", str(ex))
+    finally:
+        conn.close()
+        return result
+
 
 def ReadPlayerName(Name: str) -> list:
     """Returns a list of a Player's properties.
@@ -677,17 +740,35 @@ def UpdatePlayerPermissionLevel(Id: int, PermissionLevel: int):
 #endregion
 
 #region "Delete Commands"
-def DeletePlayer(Id: int) -> None:
-    return
+def DeletePlayer(Id: int) -> str:
+    Updated = "Didn't update."
+    if PlayerExistsId(Id=Id) == False:
+        return "Snipe Id doesn't exists."
+    
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"UPDATE {PLAYERS_T} SET IsDeleted=1 WHERE Id=?;"
+        param = (Id,)
+        conn.execute(sql, param)
+        conn.commit()
+        Updated = f"Removed player of id \"{Id}\" from the database."
+    except Exception as ex:
+        print(f"ERROR: In file \"{FILE_NAME}\" of function \"DeleteSnipe\"")
+        print(f"Message: {str(ex)}")
+        Log.Error(FILE_NAME, "Remove player", str(ex))
+        Updated = "ERROR: An error has occured..."
+    finally:
+        conn.close()
+        return Updated
 
-def DeleteSnipe(Id: int) -> str:
+def UndoDeleteSnipe(Id: int) -> str:
     Updated = "Didn't update."
     if SnipeIdExists(Id=Id) == False:
         return "Snipe Id doesn't exists."
     
     try:
         conn = sqlite3.connect(CONNECTION_PATH)
-        sql = f"UPDATE {SNIPES_T} SET IsDeleted=1 WHERE Id=?;"
+        sql = f"UPDATE {SNIPES_T} SET IsDeleted=0 WHERE Id=?;"
         param = (Id,)
         conn.execute(sql, param)
         conn.commit()
@@ -695,7 +776,7 @@ def DeleteSnipe(Id: int) -> str:
     except Exception as ex:
         print(f"ERROR: In file \"{FILE_NAME}\" of function \"DeleteSnipe\"")
         print(f"Message: {str(ex)}")
-        Log.Error(FILE_NAME, "UpdatePlayerPermissionLevel", str(ex))
+        Log.Error(FILE_NAME, "Remove snipe", str(ex))
         Updated = "ERROR: An error has occured..."
     finally:
         conn.close()

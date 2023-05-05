@@ -22,15 +22,16 @@ class Player(commands.Cog):
             Log.Command(UserDiscordId, "snipe", ' '.join(args))
             SnipedExtractedDiscordId = DB.ExtractDiscordId(SnipedArgs)
             SnipedDbIds = []
-            if DB.AuthorHavePermission(ctx.author.id, 0) == False:
-                await ctx.send("Action denied: You've been banned nerd.")
-                return
                 
             #Get the sniper ID (creating if needed)
             if DB.PlayerExistsDiscordId(UserDiscordId):
                 SniperId = DB.ReadPlayerDiscordId(UserDiscordId)[0]
             else:
                 SniperId = DB.CreatePlayer(DiscordId=UserDiscordId, Name=ctx.author.display_name)
+
+            if DB.AuthorHavePermission(ctx.author.id, 0) == False:
+                await ctx.send("Action denied: You've been banned nerd.")
+                return
 
             #Get the sniped ID (creating if needed)
             for DiscordId in SnipedExtractedDiscordId:
