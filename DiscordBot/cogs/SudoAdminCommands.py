@@ -40,6 +40,8 @@ class SudoAdmin(commands.Cog):
             if Level.isdigit() == False and Level != "-1":
                 await ctx.send("Permission input isn't valid. Must be a number 0-9")
                 return
+            else:
+                Level = int(Level)
 
             if int(Level) > 9:
                 Level = 9
@@ -61,8 +63,8 @@ class SudoAdmin(commands.Cog):
             await ctx.send(f"Updated <@{DiscordId[0]}>'s permission level to {Level}")
 
         except Exception as ex:
-            Log.Error(FILE_NAME, "Players", str(ex))
-            print(f"ERROR: In file \"{FILE_NAME}\" of command \"Players\"")
+            Log.Error(FILE_NAME, "Update Permission", str(ex))
+            print(f"ERROR: In file \"{FILE_NAME}\" of command \"Updatepermission\"")
             print(f"Message: {str(ex)}")
             await ctx.send("Error: An error has occured, please try again.")
 
