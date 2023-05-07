@@ -390,14 +390,11 @@ def ReadPlayerId(Id: int) -> list:
     try:
         result = []
         conn = sqlite3.connect(CONNECTION_PATH)
-        if PlayerExistsId(Id=Id):
-            sql = f"SELECT * FROM {PLAYERS_T} WHERE Id=?"
-            param = ([str(Id)])
-            cur = conn.execute(sql, param)
-            row = cur.fetchone()
-            result = list(row)
-        else:
-            print(f"Player Id {Id} does not exists.")
+        sql = f"SELECT * FROM {PLAYERS_T} WHERE Id=?"
+        param = ([str(Id)])
+        cur = conn.execute(sql, param)
+        row = cur.fetchone()
+        result = list(row)
     except Exception as ex:
         Log.Error(FILE_NAME, "ReadPlayerId", str(ex))
     finally:
@@ -460,14 +457,11 @@ def CalcSnipes(Id: int) -> int:
     try:
         result = 0
         conn = sqlite3.connect(CONNECTION_PATH)
-        if PlayerExistsId(Id=Id):
-            sql = f"SELECT * FROM {SNIPES_T} WHERE SniperId=?;"
-            param = (Id,)
-            cur = conn.execute(sql, param)
-            row = cur.fetchall()
-            result = len(list(row))
-        else:
-            print(f"Player Id:{Id} does not exists.")
+        sql = f"SELECT * FROM {SNIPES_T} WHERE SniperId=?;"
+        param = (Id,)
+        cur = conn.execute(sql, param)
+        row = cur.fetchall()
+        result = len(list(row))
     except Exception as ex:
         Log.Error(FILE_NAME, "CalcSnipes", str(ex))
     finally:
@@ -478,14 +472,11 @@ def CalcSniped(Id: int) -> int:
     try:
         result = 0
         conn = sqlite3.connect(CONNECTION_PATH)
-        if PlayerExistsId(Id=Id):
-            sql = f"SELECT * FROM {SNIPES_T} WHERE SnipedId=?;"
-            param = (Id,)
-            cur = conn.execute(sql, param)
-            row = cur.fetchall()
-            result = len(list(row))
-        else:
-            print(f"Player Id:{Id} does not exists.")
+        sql = f"SELECT * FROM {SNIPES_T} WHERE SnipedId=?;"
+        param = (Id,)
+        cur = conn.execute(sql, param)
+        row = cur.fetchall()
+        result = len(list(row))
     except Exception as ex:
         Log.Error(FILE_NAME, "CalcSniped", str(ex))
     finally:
@@ -505,14 +496,11 @@ def ReadPlayerName(Name: str) -> list:
     try:
         result = []
         conn = sqlite3.connect(CONNECTION_PATH)
-        if PlayerExistsName(Name=Name):
-            sql = f"SELECT * FROM {PLAYERS_T} WHERE Name=?;"
-            param = ([str(Name)])
-            cur = conn.execute(sql, param)
-            row = cur.fetchone()
-            result = list(row)
-        else:
-            print(f"Player Name '{Name}' does not exists.")
+        sql = f"SELECT * FROM {PLAYERS_T} WHERE Name=?;"
+        param = ([str(Name)])
+        cur = conn.execute(sql, param)
+        row = cur.fetchone()
+        result = list(row)
     except Exception as ex:
         Log.Error(FILE_NAME, "ReadPlayerDiscordId", str(ex))
     finally:
@@ -761,14 +749,33 @@ def DeletePlayer(Id: int) -> str:
         conn.close()
         return Updated
 
-def UndoDeleteSnipe(Id: int) -> str:
+def UndoDeletePlayer(Id: int) -> str:
+    Updated = "Didn't update."
+    
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"UPDATE {PLAYERS_T} SET IsDeleted=0 WHERE Id=?;"
+        param = (Id,)
+        conn.execute(sql, param)
+        conn.commit()
+        Updated = f"Readded player of id \"{Id}\" from the database."
+    except Exception as ex:
+        print(f"ERROR: In file \"{FILE_NAME}\" of function \"DeleteSnipe\"")
+        print(f"Message: {str(ex)}")
+        Log.Error(FILE_NAME, "Remove player", str(ex))
+        Updated = "ERROR: An error has occured..."
+    finally:
+        conn.close()
+        return Updated
+
+def DeleteSnipe(Id: int) -> str:
     Updated = "Didn't update."
     if SnipeIdExists(Id=Id) == False:
         return "Snipe Id doesn't exists."
     
     try:
         conn = sqlite3.connect(CONNECTION_PATH)
-        sql = f"UPDATE {SNIPES_T} SET IsDeleted=0 WHERE Id=?;"
+        sql = f"UPDATE {SNIPES_T} SET IsDeleted=1 WHERE Id=?;"
         param = (Id,)
         conn.execute(sql, param)
         conn.commit()
@@ -777,6 +784,25 @@ def UndoDeleteSnipe(Id: int) -> str:
         print(f"ERROR: In file \"{FILE_NAME}\" of function \"DeleteSnipe\"")
         print(f"Message: {str(ex)}")
         Log.Error(FILE_NAME, "Remove snipe", str(ex))
+        Updated = "ERROR: An error has occured..."
+    finally:
+        conn.close()
+        return Updated
+    
+def UndoDeleteSnipe(Id: int) -> str:
+    Updated = "Didn't update."
+    
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"UPDATE {SNIPES_T} SET IsDeleted=0 WHERE Id=?;"
+        param = (Id,)
+        conn.execute(sql, param)
+        conn.commit()
+        Updated = f"Readded snipe of id \"{Id}\" from the database."
+    except Exception as ex:
+        print(f"ERROR: In file \"{FILE_NAME}\" of function \"DeleteSnipe\"")
+        print(f"Message: {str(ex)}")
+        Log.Error(FILE_NAME, "Undo Remove snipe", str(ex))
         Updated = "ERROR: An error has occured..."
     finally:
         conn.close()

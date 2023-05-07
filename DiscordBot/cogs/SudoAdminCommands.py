@@ -121,18 +121,9 @@ class SudoAdmin(commands.Cog):
                 return
             else:
                 PlayerId = int(PlayerId)
-
-            if DB.PlayerExistsId(PlayerId):
-                PlayerPermissionLevel = DB.GetPermissionLevel(PlayerId)
                 
-                if PlayerPermissionLevel > 0:
-                    await ctx.send("Can't remove a player with admin level permissions.")
-                    return
-                
-                Updated = DB.DeletePlayer(PlayerId)
-                await ctx.send(Updated)
-            else:
-                await ctx.send(f"Error: Player Id {PlayerId} does not exists.")
+            Updated = DB.UndoDeletePlayer(PlayerId)
+            await ctx.send(Updated)
 
         except Exception as ex:
             print(f"ERROR: In file \"{FILE_NAME}\" of command \"Players\"")

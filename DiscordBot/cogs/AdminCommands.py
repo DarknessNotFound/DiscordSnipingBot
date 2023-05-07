@@ -312,8 +312,6 @@ class Admin(commands.Cog):
                 await ctx.send("Action denied: Not high enough permission level.")
                 return
             
-            await ctx.send("WIP: this command is still under construction.")
-
             if len(args) == 0:
                 await ctx.send("ERROR: no arguements given, use **>>help removesnipe** for help.")
                 return
@@ -326,6 +324,53 @@ class Admin(commands.Cog):
                     MsgToSend = "Id not found in the database."
                 else:
                     MsgToSend = DB.DeleteSnipe(id)
+                results.append((str(id), MsgToSend))
+            
+            msg = discord.Embed(
+                title="Snipes Removal"
+            )
+
+            count = 0
+            for result in results:
+                count += 1
+                msg.add_field(
+                    name=result[0],
+                    value="Result: " + result[1],
+                    inline=True
+                )
+                if count >= 24:
+                    await ctx.send(embed=msg)
+                    count = 0
+                    msg.clear_fields()
+            if count > 0:
+                await ctx.send(embed=msg)
+
+        except Exception as ex:
+            print(f"ERROR: In file \"{FILE_NAME}\" of command \"RemoveSnipe\"")
+            print(f"Message: {str(ex)}")
+            Log.Error(FILE_NAME, "RemoveSnipe", str(ex))
+
+    @commands.command(name='undoremovesnipe', help='Put the snipe id for each snipe to remove (space between each snipe id).')
+    async def UndoRemoveSnipe(self, ctx, *args):
+        """Readds a snipe from the database.
+        """
+        try:
+            Log.Command(ctx.author.id, "undoremovesnipe", ' '.join(args))
+
+            if DB.AuthorHavePermission(ctx.author.id, ADMIN_PERMISSION_LEVEL) == False:
+                await ctx.send("Action denied: Not high enough permission level.")
+                return
+            
+            if len(args) == 0:
+                await ctx.send("ERROR: no arguements given, use **>>help removesnipe** for help.")
+                return
+            
+            results = []
+            for id in args:
+                if id.isdigit() == False:
+                    MsgToSend = "Argument is not a digit."
+                else:
+                    MsgToSend = DB.UndoDeleteSnipe(id)
                 results.append((str(id), MsgToSend))
             
             msg = discord.Embed(
@@ -365,7 +410,7 @@ class Admin(commands.Cog):
             
             await ctx.send("WIP: this command is still under construction.")
 
-            if len(args) != 0:
+            if len(args) != 3:
                 await ctx.send(f"ERROR: only {len(args)} arguements given but requires 3 arguements, use **>>help updatesnipe** for help.")
                 return
 
