@@ -10,7 +10,7 @@ class AdminTest(commands.Cog):
     # Commands
     @commands.command(name='echo', help='Echos what user said.')
     async def echo(self, ctx, *args):
-        """Echos
+        """Echos what was inputed.
 
         Args:
             ctx (_type_): _description_

@@ -10,12 +10,16 @@ if __debug__:
 else:
     SNIPES_DB="DB_Sniping.db"
 
+#Sqlite Database Settings
 CONNECTION_PATH=os.path.join("./Databases", SNIPES_DB)
+ISOLATION_LEVEL="DEFERRED"
+
+#Tables Names
 PLAYERS_T="Players"
 SNIPES_T="Snipes"
 PERMISSIONS_T="Permissions"
-ISOLATION_LEVEL="DEFERRED"
 
+#For purposes of the logging system.
 FILE_NAME="DbManagement"
 
 #region "Helper"
@@ -59,15 +63,7 @@ def CreateSnipesDB():
         conn.close()
 
 def CreatePlayersTable(Conn: sqlite3.Connection) -> None:
-    """Creates the logging table tracking all users.
-
-        CREATE TABLE {PLAYERS_T}(
-            Id INTEGER PRIMARY KEY AUTOINCREMENT,
-            DiscordId TEXT NULL,
-            Name TEXT NULL,
-            PermissionLevel INTEGER NOT NULL DEFAULT 0,
-            IsDeleted INTEGER NOT NULL DEFAULT 0
-        );
+    """Creates the datatable tracking all users.
     Args:
         Conn (sqlite3.Connection): Connection to the database
     """    
@@ -93,17 +89,7 @@ def CreatePlayersTable(Conn: sqlite3.Connection) -> None:
         raise ex
 
 def CreateSnipesTable(Conn: sqlite3.Connection) -> None:
-    """Creates the sniping table tracking who sniped who and when.
-
-        CREATE TABLE {SNIPES_T}(
-            Id INTEGER PRIMARY KEY AUTOINCREMENT,
-            Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-            SniperId INTEGER NOT NULL,
-            SnipedId INTEGER NOT NULL,
-            IsDeleted INTEGER NOT NULL DEFAULT 0,
-            FOREIGN KEY(SniperId) REFERENCES {PLAYERS_T}(Id),
-            FOREIGN KEY(SnipedId) REFERENCES {PLAYERS_T}(Id)
-        );
+    """Creates the datatable tracking who sniped who and when.
     Args:
         Conn (sqlite3.Connection): Connection to the database
     """    
@@ -151,27 +137,6 @@ def TableExists(Conn: sqlite3.Connection, Table: str) -> bool:
     except Exception as ex:
         print(f"DbManagement -- TableExists -- {ex}")
         raise ex
-#endregion
-
-#region CRUD Testing
-def TestingDbManagementCRUD():
-    TestingPlayerCRUD()
-
-def TestingPlayerCRUD():
-    Id1 = CreatePlayer(DiscordId="1234",Name="Grant")
-    Id2 = CreatePlayer(DiscordId="1111",Name="Pham")
-    Id3 = CreatePlayer(DiscordId="2222",Name="Edwards")
-    
-    [print(element) for element in ReadPlayerId(Id3)]
-    [print(element) for element in ReadPlayerId(Id2)]
-    [print(element) for element in ReadPlayerId(Id1)]
-
-    print(f"Id 1 Exists? {PlayerExistsId(1)}")
-    print(f"Id 4 Exists? {PlayerExistsId(4)}")
-
-    print()
-    SnipeId1 = CreateSnipe(1, 3)
-    print("Grant sniped Pham... Id: " + str(SnipeId1))
 #endregion
 
 #region "Create Commands"
@@ -448,12 +413,21 @@ def GetPermissionLevel(Id: int) -> int:
         else:
             print(f"Player Id:{Id} does not exists.")
     except Exception as ex:
-        Log.Error(FILE_NAME, "ReadPlayerDiscordId", str(ex))
+        Log.Error(FILE_NAME, "GetPermissionLevel", str(ex))
     finally:
         conn.close()
         return result
     
 def CalcSnipes(Id: int) -> int:
+    """Calculates the snipes of a player given the id. If the player isn't
+    in the database then it will return 0.
+
+    Args:
+        Id (int): The player Id to check.
+
+    Returns:
+        int: The number of snipes the player Id got.
+    """
     try:
         result = 0
         conn = sqlite3.connect(CONNECTION_PATH)
@@ -469,6 +443,14 @@ def CalcSnipes(Id: int) -> int:
         return result
 
 def CalcSniped(Id: int) -> int:
+    """Calculates the number of times a given user was sniped.
+
+    Args:
+        Id (int): The player id to check.
+
+    Returns:
+        int: The number of times that player got sniped.
+    """
     try:
         result = 0
         conn = sqlite3.connect(CONNECTION_PATH)
@@ -502,12 +484,18 @@ def ReadPlayerName(Name: str) -> list:
         row = cur.fetchone()
         result = list(row)
     except Exception as ex:
-        Log.Error(FILE_NAME, "ReadPlayerDiscordId", str(ex))
+        Log.Error(FILE_NAME, "ReadPlayerName", str(ex))
     finally:
         conn.close()
         return result
 
 def ReadAllPlayers() -> list:
+    """Gets all of the non-deleted players from the database.
+
+    Returns:
+        list: A list of all the players with the data being in the order of, respectively,
+              Id, DiscordId, Name, Permissions, IsDeleted.
+    """
     result = []
     try:
         conn = sqlite3.connect(CONNECTION_PATH)
@@ -526,6 +514,12 @@ def ReadAllPlayers() -> list:
         return result
 
 def ReadAllDeletedPlayers() -> list:
+    """Gets a list of all the deleted players from the database.
+
+    Returns:
+        list: A list of all the deleted players with the data being in the order of, respectively,
+              Id, DiscordId, Name, Permissions, IsDeleted.
+    """
     result = []
     try:
         conn = sqlite3.connect(CONNECTION_PATH)
@@ -537,13 +531,22 @@ def ReadAllDeletedPlayers() -> list:
             result.append(list(row))
         
     except Exception as ex:
-        Log.Error(FILE_NAME, "ReadAllPlayers", str(ex))
+        Log.Error(FILE_NAME, "ReadAllDeletedPlayers", str(ex))
         result = []
     finally:
         conn.close()
         return result
 
-def AuthorHavePermission(DiscordId, PermissionLevel):
+def AuthorHavePermission(DiscordId, PermissionLevel: int) -> bool:
+    """Checks if a given user has permission to use a command.
+
+    Args:
+        DiscordId (int or string): The player's 18 digit discord id
+        PermissionLevel (int): The permission level to compare to.
+
+    Returns:
+        bool: True if they have permission, false otherwise.
+    """
     player = ReadPlayerDiscordId(DiscordId)
     if len(player) < 4:
         return False
@@ -551,6 +554,14 @@ def AuthorHavePermission(DiscordId, PermissionLevel):
         return PermissionLevel <= player[3]
 
 def PlayerDisplayName(Id: int) -> str:
+    """Gets a player's display name.
+
+    Args:
+        Id (int): The player id.
+
+    Returns:
+        str: If the user has a discord id then it returns <@*18 digit id*> otherwise returns the name.
+    """
     if PlayerExistsId(Id=Id):
         player = ReadPlayerId(Id=Id)
         if len(player) == 0:
@@ -626,6 +637,12 @@ def ReadSnipes(NumSnipes: int = 5) -> list:
         return result
     
 def ReadAllSnipes() -> list:
+    """Reads all of the non-deleted snipes from the database.
+
+    Returns:
+        list: A list of the snipes. The snipes are a list containing, respectively,
+            Id, Timestamp, sniperid, snipedid, isdeleted
+    """
     result = []
     try:
         conn = sqlite3.connect(CONNECTION_PATH)
@@ -643,7 +660,16 @@ def ReadAllSnipes() -> list:
         conn.close()
         return result
 
-def ReadSnipesOfSniper(SniperId: int):
+def ReadSnipesOfSniper(SniperId: int) -> list:
+    """Gets all of the snipes from a given sniper.
+
+    Args:
+        SniperId (int): The sniper's id.
+
+    Returns:
+            list: A list of the snipes. The snipes are a list containing, respectively,
+            Id, Timestamp, sniperid, snipedid, isdeleted.
+    """
     result = []
     try:
         conn = sqlite3.connect(CONNECTION_PATH)
@@ -663,6 +689,15 @@ def ReadSnipesOfSniper(SniperId: int):
         return result
     
 def ReadSnipesOfSniped(SnipedId: int):
+    """Gets all of the snipes where the given player was sniped.
+
+    Args:
+        SniperId (int): The sniper's id.
+
+    Returns:
+            list: A list of the snipes. The snipes are a list containing, respectively,
+            Id, Timestamp, sniperid, snipedid, isdeleted.
+    """
     result = []
     try:
         conn = sqlite3.connect(CONNECTION_PATH)
@@ -684,9 +719,24 @@ def ReadSnipesOfSniped(SnipedId: int):
 
 #region "Update Commands"
 def UpdatePlayerDiscordId(Id: int, DiscordId: str) -> None:
+    """WIP: Update a given player's discord id.
+
+    Args:
+        Id (int): Player's id
+        DiscordId (str): New Discord id.
+    """
     return
 
-def UpdatePlayerName(Id: int, Name: str):
+def UpdatePlayerName(Id: int, Name: str) -> str:
+    """Updates a player's name in the database.
+
+    Args:
+        Id (int): The player's id.
+        Name (str): The new name of the player.
+
+    Returns:
+        str: A result message.
+    """
     Updated = False
     if PlayerExistsId(Id=Id) == False:
         return False
@@ -705,7 +755,16 @@ def UpdatePlayerName(Id: int, Name: str):
         conn.close()
         return Updated
 
-def UpdatePlayerPermissionLevel(Id: int, PermissionLevel: int):
+def UpdatePlayerPermissionLevel(Id: int, PermissionLevel: int) -> bool:
+    """Updates a player's permission level in the database.
+
+    Args:
+        Id (int): The players id.
+        PermissionLevel (int): The new permission level.
+
+    Returns:
+        str: True if updated successfully.
+    """
     Updated = False
     if PlayerExistsId(Id=Id) == False:
         return False
@@ -724,11 +783,18 @@ def UpdatePlayerPermissionLevel(Id: int, PermissionLevel: int):
         conn.close()
         return Updated
 
-
 #endregion
 
 #region "Delete Commands"
 def DeletePlayer(Id: int) -> str:
+    """Soft deletes a player from the database.
+
+    Args:
+        Id (int): The player id to soft delete.
+
+    Returns:
+        str: Function output message.
+    """
     Updated = "Didn't update."
     if PlayerExistsId(Id=Id) == False:
         return "Snipe Id doesn't exists."
@@ -743,13 +809,21 @@ def DeletePlayer(Id: int) -> str:
     except Exception as ex:
         print(f"ERROR: In file \"{FILE_NAME}\" of function \"DeleteSnipe\"")
         print(f"Message: {str(ex)}")
-        Log.Error(FILE_NAME, "Remove player", str(ex))
+        Log.Error(FILE_NAME, "DeletePlayer", str(ex))
         Updated = "ERROR: An error has occured..."
     finally:
         conn.close()
         return Updated
 
 def UndoDeletePlayer(Id: int) -> str:
+    """Undos the soft deletion of a player from the database.
+
+    Args:
+        Id (int): Player id to undo.
+
+    Returns:
+        str: Output message.
+    """
     Updated = "Didn't update."
     
     try:
@@ -762,13 +836,21 @@ def UndoDeletePlayer(Id: int) -> str:
     except Exception as ex:
         print(f"ERROR: In file \"{FILE_NAME}\" of function \"DeleteSnipe\"")
         print(f"Message: {str(ex)}")
-        Log.Error(FILE_NAME, "Remove player", str(ex))
+        Log.Error(FILE_NAME, "UndoDeletePlayer", str(ex))
         Updated = "ERROR: An error has occured..."
     finally:
         conn.close()
         return Updated
 
 def DeleteSnipe(Id: int) -> str:
+    """Soft deletes a snipe from the database.
+
+    Args:
+        Id (int): The snipe id to delete.
+
+    Returns:
+        str: Output message.
+    """
     Updated = "Didn't update."
     if SnipeIdExists(Id=Id) == False:
         return "Snipe Id doesn't exists."
@@ -790,6 +872,14 @@ def DeleteSnipe(Id: int) -> str:
         return Updated
     
 def UndoDeleteSnipe(Id: int) -> str:
+    """Readds a snipe to the database.
+
+    Args:
+        Id (int): Snipe id to readd to the database.
+
+    Returns:
+        str: The output message.
+    """
     Updated = "Didn't update."
     
     try:

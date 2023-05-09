@@ -8,6 +8,14 @@ FILE_NAME = "AdminCommands"
 ADMIN_PERMISSION_LEVEL = 1
 
 def ExtractPlayerName(player: list) -> str:
+    """Gets a playet's name based on the inputed player list.
+
+    Args:
+        player (list): Id, DiscordId, Name, Permissions, IsDeleted.
+
+    Returns:
+        str: The player's display name to be sent in discord.
+    """
     if len(player) < 4:
         return ""
     
@@ -17,6 +25,14 @@ def ExtractPlayerName(player: list) -> str:
         return player[2]
 
 def SnipeToText(snipe: list) -> str:
+    """Takes a given snipe list and converts it into printable discord text.
+
+    Args:
+        snipe (list): Id, Timestamp, sniperid, snipedid, isdeleted
+
+    Returns:
+        str: Printable string for discord.
+    """
     if len(snipe) < 5:
         return ""
     SniperP = DB.ReadPlayerId(snipe[2])
