@@ -251,6 +251,19 @@ class Admin(commands.Cog):
                     GroupOfSnipes.append(("Victim", DB.ReadSnipesOfSniped(int(args[1]))))
             elif args[0] == '-did': # All snipes related to a player via @'ing them.
                 await ctx.send("WIP: this flag is still under construction.")
+
+                PlayersDiscordId = DB.ExtractDiscordId(''.join(args))
+                for DiscordId in PlayersDiscordId:
+                    if DB.PlayerExistsDiscordId(DiscordId):
+                        Player = DB.ReadPlayerDiscordId(DiscordId=DiscordId)
+                        if len(Player) == 0:
+                            await ctx.send(f"<@{DiscordId}> not found.")
+                        else:
+                            GroupOfSnipes.append((f"<@{Player[1]}>'s Confirmed Kills", DB.ReadSnipesOfSniper(Player[0])))
+                            GroupOfSnipes.append((f"<@{Player[1]}>'s Deaths", DB.ReadSnipesOfSniped(Player[0])))
+                    else:
+                        await ctx.send(f"<@{DiscordId}> does not exists in the database.")
+
             elif args[0] == '-d': # All snipes x days ago (default today).
                 await ctx.send("WIP: this flag is still under construction.")
             elif args[0] == '-dr': # All snipes x to y days ago (default today or x to today).
@@ -271,6 +284,9 @@ class Admin(commands.Cog):
                 )
 
                 count = 0
+                if len(SnipeGroup[1]) == 0:
+                    print(f"Title {SnipeGroup[0]} has no snipes.")
+                    
                 for snipe in SnipeGroup[1]:
                     count += 1
                     snipeString = SnipeToText(snipe=snipe)
@@ -294,7 +310,7 @@ class Admin(commands.Cog):
             print(f"Message: {str(ex)}")
             Log.Error(FILE_NAME, "snipes", str(ex))
 
-    @commands.command(name='addsnipe', help='Manual snipe >>addsnipe -a @sniper -d @sniped')
+    @commands.command(name='addsnipe', help='Manual snipe >>addsnipe Sniper_Id Victum_Id')
     async def AddSnipe(self, ctx, *args):
         """Manually inserts a snipe into the database (records sniper and sniped)
 

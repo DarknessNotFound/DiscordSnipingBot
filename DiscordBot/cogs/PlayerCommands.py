@@ -36,7 +36,7 @@ class Player(commands.Cog):
             #Get the sniped ID (creating if needed)
             for DiscordId in SnipedExtractedDiscordId:
                 if DB.PlayerExistsDiscordId(DiscordId):
-                    SnipedDbIds.append(DB.ReadPlayerDiscordId(DiscordId)[0])
+                    SnipedDbIds.append(DB.ReadPlayerDiscordId(DiscordId=DiscordId)[0])
                 else:
                     SnipedUser = await self.client.fetch_user(DiscordId)
                     SnipedName = SnipedUser.display_name

@@ -23,7 +23,7 @@ PERMISSIONS_T="Permissions"
 FILE_NAME="DbManagement"
 
 #region "Helper"
-def ExtractDiscordId(string: str) -> str:
+def ExtractDiscordId(string: str) -> list:
     """Gets the discord id from the inputed string
 
     Args:
@@ -213,16 +213,17 @@ def CreateSnipe(SniperId: int, SnipedId: int) -> int:
     """    
 
     try:
+        conn = sqlite3.connect(CONNECTION_PATH, isolation_level=ISOLATION_LEVEL)
         if PlayerExistsId(Id=SniperId) == False:
             raise Exception("Sniper Id does not exists.")
 
         if PlayerExistsId(Id=SnipedId) == False:
+            print(f"Sniped Id: {SnipedId}")
             raise Exception("Sniped Id does not exists.")
 
         if SniperId == SnipedId:
             raise Exception("Cannot snipe yourself.")
         
-        conn = sqlite3.connect(CONNECTION_PATH, isolation_level=ISOLATION_LEVEL)
         cur = conn.cursor()
         sql = f"""
                 INSERT INTO {SNIPES_T}(SniperId, SnipedId)
@@ -355,7 +356,7 @@ def ReadPlayerId(Id: int) -> list:
     try:
         result = []
         conn = sqlite3.connect(CONNECTION_PATH)
-        sql = f"SELECT * FROM {PLAYERS_T} WHERE Id=?"
+        sql = f"SELECT * FROM {PLAYERS_T} WHERE Id=? AND IsDeleted=0"
         param = ([str(Id)])
         cur = conn.execute(sql, param)
         row = cur.fetchone()
@@ -379,7 +380,7 @@ def ReadPlayerDiscordId(DiscordId: str) -> list:
         result = []
         conn = sqlite3.connect(CONNECTION_PATH)
         if PlayerExistsDiscordId(DiscordId=DiscordId):
-            sql = f"SELECT * FROM {PLAYERS_T} WHERE DiscordId=?"
+            sql = f"SELECT * FROM {PLAYERS_T} WHERE DiscordId=? AND IsDeleted=0"
             param = ([str(DiscordId)])
             cur = conn.execute(sql, param)
             row = cur.fetchone()
