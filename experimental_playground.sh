@@ -4,10 +4,12 @@
 mkdir testing
 cd testing
 
-touch hi1.txt
-touch hi2.txt
-touch hi3.txt
+cp -r ../DiscordBot/* ./
+cp ../.env
 
-rm -f ./*
+python3 ./main.py
+
+# Cleanup
+rm -rf ./*
 cd ../
 rmdir testing

@@ -48,6 +48,12 @@ class Admin(commands.Cog):
         self.client = client
     # Commands
 
+    @commands.command(name='quit', help='')
+    async def players(self, ctx, *args):
+        if DB.AuthorHavePermission(ctx.author.id, ADMIN_PERMISSION_LEVEL) == False:
+            await ctx.send("Action denied: Not high enough permission level.")
+            return
+        raise RuntimeError("User quit the program")
     #region Players
 
     @commands.command(name='players', help='Various Player Options: -dis for discord id, -id for id, -n for name, -a for all, and -ad for all deleted')
