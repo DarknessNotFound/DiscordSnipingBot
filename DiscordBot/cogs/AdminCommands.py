@@ -496,7 +496,15 @@ class Admin(commands.Cog):
             if len(args) == 0:
                 quotes = DB.ReadAllQuotes()
             else:
-                quotes = DB.ReadAllDeletedQuotes()
+                if args[0] == "-d":
+                    quotes = DB.ReadAllDeletedQuotes()
+                else:
+                    await ctx.send(f"Errror: expected \"-d\", recieved \"{args.join(' ')}\"")
+                    quotes = []
+
+            if len(quotes) == 0:
+                await ctx.send("No quotes found")
+                return
 
             msg = discord.Embed(
                 title="Read Quotes"
@@ -521,6 +529,35 @@ class Admin(commands.Cog):
             Log.Error(FILE_NAME, "ReadQuote", str(ex))
             print(f"ERROR -- {FILE_NAME} -- ReadQuote: {ex}")
 
+    @commands.command(name='updatequote', help='>>updatequote [quote ID] [new quote]') 
+    async def UpdateSnipe(self, ctx, *args):
+        """Updates a quote in the database.
+        """        
+        try:
+            Log.Command(ctx.author.id, "updatesnipe", ' '.join(args))
+
+            if DB.AuthorHavePermission(ctx.author.id, ADMIN_PERMISSION_LEVEL) == False:
+                await ctx.send("Action denied: Not high enough permission level.")
+                return
+            
+            await ctx.send("WIP: this command is still under construction.")
+            if len(args) < 2:
+                await ctx.send(f"Needs at least 2 arguements, recieved {len(args)}.")
+                return
+
+            if args[0].isdigit() is False:
+                await ctx.send(f"[ID] must be an positive integer, recieved \"{args[0]}\".")
+                return
+
+            if not DB.QuoteExists(args[0]):
+                await ctx.send(f"Quote {args[0]} does not exists in the database.})
+                return
+            DB.UpdateQuote(int(args[0]), args[1:].join(' '))
+            quote = DB.GetQuote(args[0])
+            await ctx.send(f"Updated quote {args[0]} as \"{quote}\".")
+
+        except Exception as ex:
+            Log.Error(FILE_NAME, "UpdateSnipe", str(ex))
     #endregion
 
 

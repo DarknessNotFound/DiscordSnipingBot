@@ -15,10 +15,10 @@ CONNECTION_PATH=os.path.join("./Databases", SNIPES_DB)
 ISOLATION_LEVEL="DEFERRED"
 
 # Tables Names
-PLAYERS_T="Players"
-SNIPES_T="Snipes"
-PERMISSIONS_T="Permissions"
-QUOTES_T="Quotes"
+PLAYERS_T = "Players"
+SNIPES_T = "Snipes"
+PERMISSIONS_T = "Permissions"
+QUOTES_T = "Quotes"
 # For purposes of the logging system.
 FILE_NAME="DbManagement"
 
@@ -661,6 +661,37 @@ def ReadAllQuotes() -> list:
         conn.close()
         return result
 
+#region "Read Quotes Commands"
+def ReadAllDeletedQuotes() -> list:
+    """Gets all the deleted quotes from the database.
+    """
+    result = []
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"SELECT id, quote FROM {QUOTES_T} WHERE IsDeleted=1;"
+        cur = conn.execute(sql)
+        rows = cur.fetchall()
+
+        for row in rows:
+            result.append(list(row))
+
+    except Exception as ex:
+        Log.Error(FILE_NAME, "ReadAllDeletedQuotes", str(ex))
+        result = []
+    finally:
+        conn.close()
+        return result
+
+def GetQuote(Id: int) -> str:
+    """Gets a quote from the database.
+    """
+    result = "Failed to get the quote from the database"
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"SELECT id, quote FROM {QUOTES_T} WHERE Id=?"
+        param = (Id,)
+        cur = conn.execute(sql, param)
+        
 #endregion
 
 #region "Read Snipes Commands"
