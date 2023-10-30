@@ -60,7 +60,7 @@ class Player(commands.Cog):
                     continue
 
                 SnipeId = DB.CreateSnipe(SniperId=SniperId, SnipedId=SnipedId)
-                await ctx.send(f"{SnipeId}: {DB.PlayerDisplayName(SniperId)} sniped {DB.PlayerDisplayName(SnipedId)}")
+                await ctx.send(DB.GenerateSnipeString(SniperId, SnipedId))
         except Exception as ex:
             Log.Error(FILE_NAME, "snipe", str(ex))
             print(f"ERROR: In file \"{FILE_NAME}\" of command \"snipe\"")

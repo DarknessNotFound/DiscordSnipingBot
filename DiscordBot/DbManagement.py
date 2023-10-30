@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import re
+from random import choice as randChoice
 from CONST import *
 import Logging as Log
 
@@ -271,39 +272,6 @@ def CreateSnipe(SniperId: int, SnipedId: int) -> int:
         conn.close()
         return result
 
-def CreateQuote(Quote: str) -> int:
-    """Creates a new quote in the database.
-
-    Args:
-        Quote (str): The quote that needs to be added.
-
-    Returns:
-        int: The quote id in the quotes table.
-    """
-
-    try:
-        conn = sqlite3.connect(CONNECTION_PATH, isolation_level=ISOLATION_LEVEL)
-        cur = conn.cursor()
-        sql = f"""
-                INSERT INTO {QUOTES_T}(Quote)
-                VALUES (?);
-            """
-        params = ([str(Quote)])
-        cur.execute(sql, params)
-        conn.commit()
-        if (cur.rowcount == 0):
-            raise Exception("Insertion didn't return Id")
-
-        result = cur.lastrowid
-
-    except Exception as ex:
-        print(f"{FILE_NAME} -- CreateQuote -- {ex}")
-        result = -1
-        conn.rollback()
-
-    finally:
-        conn.close()
-        return result
 #endregion
 
 #region "Read Player Commands"
@@ -639,8 +607,59 @@ def PlayerDisplayName(Id: int) -> str:
 
 #endregion
 
+def GenerateSnipeString(SniperId: int, SnipedId: int) -> str:
+    Attacker = PlayerDisplayName(SniperId)
+    Victim = PlayerDisplayName(SnipedId)
 
-#region "Read Quotes Commands"
+    Quote = randChoice(ReadAllQuotes())[1]
+    Quote = Quote.replace("<a>", Attacker)
+    Quote = Quote.replace("<v>", Victim)
+    return Quote
+
+# region "Quotes Commands"
+def QualifiedQuote(Quote: str) -> bool:
+    print(f"Quote: {Quote}")
+    print(re.search("<a>", Quote) != None)
+    print(re.search("<v>", Quote) != None)
+    return (re.search("<a>", Quote) != None) and (re.search("<v>", Quote) != None)
+
+def CreateQuote(Quote: str) -> int:
+    """Creates a new quote in the database.
+
+    Args:
+        Quote (str): The quote that needs to be added.
+
+    Returns:
+        int: The quote id in the quotes table.
+    """
+
+    if not QualifiedQuote(Quote):
+        return -1
+    
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH, isolation_level=ISOLATION_LEVEL)
+        cur = conn.cursor()
+        sql = f"""
+                INSERT INTO {QUOTES_T}(Quote)
+                VALUES (?);
+            """
+        params = ([str(Quote)])
+        cur.execute(sql, params)
+        conn.commit()
+        if (cur.rowcount == 0):
+            raise Exception("Insertion didn't return Id")
+
+        result = cur.lastrowid
+
+    except Exception as ex:
+        print(f"{FILE_NAME} -- CreateQuote -- {ex}")
+        result = -1
+        conn.rollback()
+
+    finally:
+        conn.close()
+        return result
+
 def ReadAllQuotes() -> list:
     """Gets all the non-deleted quotes from the database.
     """
@@ -661,7 +680,6 @@ def ReadAllQuotes() -> list:
         conn.close()
         return result
 
-#region "Read Quotes Commands"
 def ReadAllDeletedQuotes() -> list:
     """Gets all the deleted quotes from the database.
     """
@@ -682,6 +700,38 @@ def ReadAllDeletedQuotes() -> list:
         conn.close()
         return result
 
+def QuoteExists(Id: int) -> bool:
+    """Checks if a given Id exists in the quotes table
+
+    Args:
+        Id (Id): Id to check
+
+    Raises:
+        ex: Any error occurs
+
+    Returns:
+        bool: True if the table returns only one row
+    """    
+    try:
+        result = False
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"SELECT * FROM {QUOTES_T} WHERE Id=? AND IsDeleted=0;"
+        param = (Id,)
+        cur = conn.execute(sql, param)
+        NumRows = len(cur.fetchall())
+        result = NumRows == 1
+
+        if cur.rowcount > 1:
+            raise Exception(f"Returned {NumRows} rows.")
+
+    except Exception as ex:
+        print(f"{FILE_NAME} -- SnipeIdExists -- {ex}")
+        result = False
+
+    finally:
+        conn.close()
+        return result
+
 def GetQuote(Id: int) -> str:
     """Gets a quote from the database.
     """
@@ -689,9 +739,101 @@ def GetQuote(Id: int) -> str:
     try:
         conn = sqlite3.connect(CONNECTION_PATH)
         sql = f"SELECT id, quote FROM {QUOTES_T} WHERE Id=?"
-        param = (Id,)
+        param = ([str(Id)])
         cur = conn.execute(sql, param)
-        
+        row = cur.fetchone()
+        result = list(row)
+    except Exception as ex:
+        Log.Error(FILE_NAME, "ReadPlayerId", str(ex))
+    finally:
+        conn.close()
+        return result
+
+def UpdateQuote(Id: int, Quote: str) -> str:
+    """Updates a quote in the database
+
+    Args:
+        Id (int): The id to be updated
+        Quote (str): The new quote to be
+
+    Returns:
+        str: The new quote or nothing if it failed to be inserted.
+    """
+    if not QuoteExists(id):
+        return ""
+    
+    if not QualifiedQuote(Quote):
+        return "New quote invalid, needs <a> and <v>"
+    
+    result = ""
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"UPDATE {QUOTES_T} SET Quote=? WHERE Id=?;"
+        param = (Quote, Id)
+        conn.execute(sql, param)
+        conn.commit()
+        result = Quote
+    except Exception as ex:
+        Log.Error(FILE_NAME, "UpdateQuote", str(ex))
+    finally:
+        conn.close()
+        return result
+
+def DeleteQuote(Id: int) -> str:
+    """Soft deletes a quote from the database.
+
+    Args:
+        Id (int): The quote id to delete.
+
+    Returns:
+        str: Output message.
+    """
+    Updated = "Didn't update."
+    if QuoteExists(Id) is False:
+        return "Snipe Id doesn't exists."
+    
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"UPDATE {QUOTES_T} SET IsDeleted=1 WHERE Id=?;"
+        param = (Id,)
+        conn.execute(sql, param)
+        conn.commit()
+        Updated = f"Removed Quote of id \"{Id}\" from the database."
+    except Exception as ex:
+        print(f"ERROR: In file \"{FILE_NAME}\" of function \"DeleteQuote\"")
+        print(f"Message: {str(ex)}")
+        Log.Error(FILE_NAME, "RemoveQuote", str(ex))
+        Updated = "ERROR: An error has occured..."
+    finally:
+        conn.close()
+        return Updated
+    
+def UndoDeleteQuote(Id: int) -> str:
+    """Soft deletes a quote from the database.
+
+    Args:
+        Id (int): The quote id to delete.
+
+    Returns:
+        str: Output message.
+    """
+    Updated = "Didn't update."
+    
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"UPDATE {QUOTES_T} SET IsDeleted=0 WHERE Id=?;"
+        param = (Id,)
+        conn.execute(sql, param)
+        conn.commit()
+        Updated = f"Readded Quote of id \"{Id}\" from the database."
+    except Exception as ex:
+        print(f"ERROR: In file \"{FILE_NAME}\" of function \"UndoDeleteQuote\"")
+        print(f"Message: {str(ex)}")
+        Log.Error(FILE_NAME, "UndoDeleteSnipe", str(ex))
+        Updated = "ERROR: An error has occured..."
+    finally:
+        conn.close()
+        return Updated
 #endregion
 
 #region "Read Snipes Commands"
@@ -831,6 +973,7 @@ def ReadSnipesOfSniped(SnipedId: int):
     finally:
         conn.close()
         return result
+
 #endregion
 
 #region "Update Commands"

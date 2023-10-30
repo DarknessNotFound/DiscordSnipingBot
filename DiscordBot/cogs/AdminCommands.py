@@ -473,6 +473,10 @@ class Admin(commands.Cog):
                 await ctx.send("No arguements added, aborting....")
                 return
 
+            if not DB.QualifiedQuote(' '.join(args)):
+                await ctx.send("Not a valid quote; the quote needs \"<a>\" and \"<v>\".")
+                return
+            
             QuoteId = DB.CreateQuote(Quote=' '.join(args))
             await ctx.send(f"Inserted new quote, id {QuoteId} into the database")
             return
@@ -480,7 +484,6 @@ class Admin(commands.Cog):
         except Exception as ex:
             Log.Error(FILE_NAME, "InsertQuote", str(ex))
             print(f"ERROR -- {FILE_NAME} -- InsertQuote: {ex}")
-
 
     @commands.command(name='quotes', help='>>quotes [-d, shows deleted quotes]')
     async def ReadQuotes(self, ctx, *args):
@@ -530,17 +533,16 @@ class Admin(commands.Cog):
             print(f"ERROR -- {FILE_NAME} -- ReadQuote: {ex}")
 
     @commands.command(name='updatequote', help='>>updatequote [quote ID] [new quote]') 
-    async def UpdateSnipe(self, ctx, *args):
+    async def UpdateQuote(self, ctx, *args):
         """Updates a quote in the database.
         """        
         try:
-            Log.Command(ctx.author.id, "updatesnipe", ' '.join(args))
+            Log.Command(ctx.author.id, "updatequote", ' '.join(args))
 
             if DB.AuthorHavePermission(ctx.author.id, ADMIN_PERMISSION_LEVEL) == False:
                 await ctx.send("Action denied: Not high enough permission level.")
                 return
             
-            await ctx.send("WIP: this command is still under construction.")
             if len(args) < 2:
                 await ctx.send(f"Needs at least 2 arguements, recieved {len(args)}.")
                 return
@@ -549,15 +551,62 @@ class Admin(commands.Cog):
                 await ctx.send(f"[ID] must be an positive integer, recieved \"{args[0]}\".")
                 return
 
-            if not DB.QuoteExists(args[0]):
-                await ctx.send(f"Quote {args[0]} does not exists in the database.})
+            if not DB.QuoteExists(int(args[0])):
+                await ctx.send(f"Quote {args[0]} does not exists in the database.")
                 return
+            
             DB.UpdateQuote(int(args[0]), args[1:].join(' '))
             quote = DB.GetQuote(args[0])
-            await ctx.send(f"Updated quote {args[0]} as \"{quote}\".")
+            await ctx.send(f"Updated snipe {args[0]} as \"{quote}\".")
 
         except Exception as ex:
             Log.Error(FILE_NAME, "UpdateSnipe", str(ex))
+
+    @commands.command(name='deletequote', help='>>deletequote [quote ID]') 
+    async def DeleteQuote(self, ctx, *args):
+        """Deletes a quote in the database.
+        """        
+        try:
+            Log.Command(ctx.author.id, "deletequote", ' '.join(args))
+
+            if DB.AuthorHavePermission(ctx.author.id, ADMIN_PERMISSION_LEVEL) == False:
+                await ctx.send("Action denied: Not high enough permission level.")
+                return
+
+            if args[0].isdigit() is False:
+                await ctx.send(f"[ID] must be an positive integer, recieved \"{args[0]}\".")
+                return
+
+            if not DB.QuoteExists(int(args[0])):
+                await ctx.send(f"Quote {args[0]} does not exists in the database.")
+                return
+
+            result = DB.DeleteQuote(int(args[0]))
+            await ctx.send(f"Result: {result}")
+
+        except Exception as ex:
+            Log.Error(FILE_NAME, "DeleteSnipe", str(ex))
+
+    @commands.command(name='undodeletequote', help='>>undodeletequote [quote ID]') 
+    async def UndoDeleteQuote(self, ctx, *args):
+        """Deletes a quote in the database.
+        """        
+        try:
+            Log.Command(ctx.author.id, "undodeletequote", ' '.join(args))
+
+            if DB.AuthorHavePermission(ctx.author.id, ADMIN_PERMISSION_LEVEL) == False:
+                await ctx.send("Action denied: Not high enough permission level.")
+                return
+
+            if args[0].isdigit() is False:
+                await ctx.send(f"[ID] must be an positive integer, recieved \"{args[0]}\".")
+                return
+
+            result = DB.UndoDeleteQuote(int(args[0]))
+            await ctx.send(f"Result: {result}")
+
+        except Exception as ex:
+            Log.Error(FILE_NAME, "UndoDeleteSnipe", str(ex))
     #endregion
 
 
