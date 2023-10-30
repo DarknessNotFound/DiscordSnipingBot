@@ -14,12 +14,12 @@ else:
 CONNECTION_PATH=os.path.join("./Databases", SNIPES_DB)
 ISOLATION_LEVEL="DEFERRED"
 
-#Tables Names
+# Tables Names
 PLAYERS_T="Players"
 SNIPES_T="Snipes"
 PERMISSIONS_T="Permissions"
-
-#For purposes of the logging system.
+QUOTES_T="Quotes"
+# For purposes of the logging system.
 FILE_NAME="DbManagement"
 
 #region "Helper"
@@ -55,6 +55,7 @@ def CreateSnipesDB():
 
         CreatePlayersTable(conn)
         CreateSnipesTable(conn)
+        CreateQuotesTable(conn)
 
     except Exception as ex:
         print(f"Logging -- CreateSnipesDB -- {ex}")
@@ -113,6 +114,30 @@ def CreateSnipesTable(Conn: sqlite3.Connection) -> None:
         print(f"{SNIPES_T} table has been created in the {Conn}")
     except Exception as ex:
         print(f"Logging -- CreateUsersTable -- {ex}")
+        Conn.rollback()
+        raise ex
+
+def CreateQuotesTable(Conn: sqlite3.Connection) -> None:
+    """Creates the datatable for holding all the quotes the bot will when confirming snipes.
+    Args:
+        Conn (sqlite3.Connection): Connetion to the database
+    """
+    try:
+        if (TableExists(Conn, QUOTES_T)):
+            return
+
+        sql = f"""
+        CREATE TABLE {QUOTES_T}(
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Quote TEXT,
+                IsDeleted INTEGER NOT NULL DEFAULT 0
+                );
+        """
+        Conn.execute(sql)
+        Conn.commit()
+        print(f"{QUOTES_T} table has been created in the {Conn}")
+    except Exception as ex:
+        print(f"Logging -- CreateQuotesTable -- {ex}")
         Conn.rollback()
         raise ex
 
@@ -185,7 +210,7 @@ def CreatePlayer(DiscordId: str = "", Name: str = "") -> int:
         conn.commit()
         if(cur.rowcount == 0):
             raise Exception("Insertion didn't return Id")
-        
+
         result = cur.lastrowid
 
     except Exception as ex:
@@ -239,6 +264,40 @@ def CreateSnipe(SniperId: int, SnipedId: int) -> int:
 
     except Exception as ex:
         print(f"{FILE_NAME} -- CreateSnipe -- {ex}")
+        result = -1
+        conn.rollback()
+
+    finally:
+        conn.close()
+        return result
+
+def CreateQuote(Quote: str) -> int:
+    """Creates a new quote in the database.
+
+    Args:
+        Quote (str): The quote that needs to be added.
+
+    Returns:
+        int: The quote id in the quotes table.
+    """
+
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH, isolation_level=ISOLATION_LEVEL)
+        cur = conn.cursor()
+        sql = f"""
+                INSERT INTO {QUOTES_T}(Quote)
+                VALUES (?);
+            """
+        params = ([str(Quote)])
+        cur.execute(sql, params)
+        conn.commit()
+        if (cur.rowcount == 0):
+            raise Exception("Insertion didn't return Id")
+
+        result = cur.lastrowid
+
+    except Exception as ex:
+        print(f"{FILE_NAME} -- CreateQuote -- {ex}")
         result = -1
         conn.rollback()
 
@@ -392,7 +451,7 @@ def ReadPlayerDiscordId(DiscordId: str) -> list:
     finally:
         conn.close()
         return result
-    
+
 def GetPermissionLevel(Id: int) -> int:
     """Returns the permission level of a given player Id.
 
@@ -567,16 +626,41 @@ def PlayerDisplayName(Id: int) -> str:
         player = ReadPlayerId(Id=Id)
         if len(player) == 0:
             return ""
-        
-        #If player doesn't have a DiscordId then display name
+
+        # If player doesn't have a DiscordId then display name
         if player[1] == "":
             return player[2]
-        #Otherwise show their discord name.
+        # Otherwise show their discord name.
         else:
             return f"<@{player[1]}>"
 
     else:
         return ""
+
+#endregion
+
+
+#region "Read Quotes Commands"
+def ReadAllQuotes() -> list:
+    """Gets all the non-deleted quotes from the database.
+    """
+    result = []
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"SELECT id, quote FROM {QUOTES_T} WHERE IsDeleted=0;"
+        cur = conn.execute(sql)
+        rows = cur.fetchall()
+
+        for row in rows:
+            result.append(list(row))
+
+    except Exception as ex:
+        Log.Error(FILE_NAME, "ReadAllQuotes", str(ex))
+        result = []
+    finally:
+        conn.close()
+        return result
+
 #endregion
 
 #region "Read Snipes Commands"

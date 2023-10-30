@@ -173,7 +173,7 @@ class Admin(commands.Cog):
                     await ctx.send(embed=msg)
                     count = 0
                     msg.clear_fields()
-            
+
             if len(PlayersToSend) == 0:
                 await ctx.send("No player(s) added.")
             else:
@@ -455,6 +455,74 @@ class Admin(commands.Cog):
         except Exception as ex:
             Log.Error(FILE_NAME, "UpdateSnipe", str(ex))
     #endregion
+
+    #region Quotes
+
+    @commands.command(name='addquote', help='>>insertquote [QUOTE TEXT]')
+    async def InsertQuote(self, ctx, *args):
+        """Inserts a new quote into the database.
+        """
+        try:
+            Log.Command(ctx.author.id, "insertquote", ' '.join(args))
+
+            if DB.AuthorHavePermission(ctx.author.id, ADMIN_PERMISSION_LEVEL) == False:
+                await ctx.send("Action denied: Not high enough permission level.")
+                return
+
+            if len(args) == 0:
+                await ctx.send("No arguements added, aborting....")
+                return
+
+            QuoteId = DB.CreateQuote(Quote=' '.join(args))
+            await ctx.send(f"Inserted new quote, id {QuoteId} into the database")
+            return
+
+        except Exception as ex:
+            Log.Error(FILE_NAME, "InsertQuote", str(ex))
+            print(f"ERROR -- {FILE_NAME} -- InsertQuote: {ex}")
+
+
+    @commands.command(name='quotes', help='>>quotes [-d, shows deleted quotes]')
+    async def ReadQuotes(self, ctx, *args):
+        """Inserts a new quote into the database.
+        """
+        try:
+            Log.Command(ctx.author.id, "readquotes", ' '.join(args))
+
+            if DB.AuthorHavePermission(ctx.author.id, ADMIN_PERMISSION_LEVEL) is False:
+                await ctx.send("Action denied: Not high enough permission level.")
+                return
+
+            if len(args) == 0:
+                quotes = DB.ReadAllQuotes()
+            else:
+                quotes = DB.ReadAllDeletedQuotes()
+
+            msg = discord.Embed(
+                title="Read Quotes"
+            )
+
+            count = 0
+            for q in quotes:
+                count += 1
+                msg.add_field(
+                    name=q[0],
+                    value=f"{q[0]}: {q[1]}",
+                    inline=True
+                )
+                if count >= 24:
+                    await ctx.send(embed=msg)
+                    count = 0
+                    msg.clear_fields()
+            if count > 0:
+                await ctx.send(embed=msg)
+
+        except Exception as ex:
+            Log.Error(FILE_NAME, "ReadQuote", str(ex))
+            print(f"ERROR -- {FILE_NAME} -- ReadQuote: {ex}")
+
+    #endregion
+
 
 async def setup(client):
     await client.add_cog(Admin(client))

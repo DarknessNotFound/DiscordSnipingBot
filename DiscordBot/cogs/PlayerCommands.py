@@ -6,6 +6,8 @@ from discord.ext import commands
 
 FILE_NAME = "PlayerCommands"
 class Player(commands.Cog):
+
+
     def __init__(self, client):
         self.client = client
     # Commands
@@ -15,7 +17,7 @@ class Player(commands.Cog):
 
         Args:
             ctx (_type_): _description_
-        """        
+        """
         try:
             UserDiscordId = ctx.author.id
             SnipedArgs = ' '.join(args)
