@@ -54,8 +54,25 @@ class Admin(commands.Cog):
             await ctx.send("Action denied: Not high enough permission level.")
             return
         raise RuntimeError("User quit the program")
-    #region Players
 
+    @commands.command(name='AdminRules', help='')
+    async def DisplayRules(self, ctx, *args):
+        if DB.AuthorHavePermission(ctx.author.id, ADMIN_PERMISSION_LEVEL) == False:
+            await ctx.send("Action denied: Not high enough permission level.")
+            return
+        msg = discord.Embed(
+                title="Welcome to the BSU's Fall 2023 Sniping Season",
+                color=0xFF5733
+                )
+        msg.add_field(name="Motivation", inline=False, value="Hello, thanks for signing up for my EVIL internship. I, uhhh, need a someone who can aim my SNIPINATOR, Roger has been a pain in my side and I am ready to finish him once and FOR ALL! I tried aiming myself but I, uhhh, kinda missed. Sorry again Marge.")
+        msg.add_field(name="Rules", inline=False, value="While I may be EVIL, my competitions don't have to be. This needs to be fair so that I can choose only the most EVIL sniper out there for my SNIPINATOR.")
+        msg.add_field(name="Allowed Victims", inline=False, value="Only those who are an current member or alumni of the BSU may be sniped. Anyone can snipe Joebob off the streets but it is hard to snipe Perry the Platypus.")
+        msg.add_field(name="DMZ", inline=False, value="The *Baptist Student Union Incorporated* is a DMZ zone. I don't want people sniping from the BSU Inc nor sniping into the BSU Inc. I live here ya know.")
+        msg.add_field(name="Valid Snipes", inline=False, value="The snipes have to be obvious who was sniped, I don't have time to decipher all those pictures. I got inators to make.")
+        msg.add_field(name="Questions", inline=False, value="Any questions or rules clarifications should be sent through Grant 1 or Grant 2. Those losers decided to help me with this FOR FREE, haha, its amazing what you can find off of the internet.")
+        await ctx.send(embed=msg)
+
+    # region Players
     @commands.command(name='players', help='Various Player Options: -dis for discord id, -id for id, -n for name, -a for all, and -ad for all deleted')
     async def players(self, ctx, *args):
         """list players
@@ -84,23 +101,21 @@ class Admin(commands.Cog):
                     else:
                         PlayersToSend.append(player)
             
-            if args [0] == '-a':
+            if args[0] == '-a':
                 PlayersToSend = DB.ReadAllPlayers()
             
-            if args [0] == "-ad":
+            if args[0] == "-ad":
                 PlayersToSend = DB.ReadAllDeletedPlayers()
-            
 
             msg = discord.Embed(
                 title="Player(s)"
             )
-            
+
             if len(PlayersToSend) == 0:
                 await ctx.send("No player(s) found.")
                 return
-            
-            count = 0
 
+            count = 0
 
             for p in PlayersToSend:
                 Snipes = DB.CalcSnipes(p[0])
@@ -555,7 +570,7 @@ class Admin(commands.Cog):
                 await ctx.send(f"Quote {args[0]} does not exists in the database.")
                 return
 
-            DB.UpdateQuote(int(args[0]), args[1:].join(' '))
+            DB.UpdateQuote(int(args[0]), ' '.join(args[1:])) 
             quote = DB.GetQuote(args[0])
             await ctx.send(f"Updated snipe {args[0]} as \"{quote}\".")
 

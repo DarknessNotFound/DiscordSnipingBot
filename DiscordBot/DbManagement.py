@@ -23,7 +23,7 @@ QUOTES_T = "Quotes"
 # For purposes of the logging system.
 FILE_NAME="DbManagement"
 
-#region "Helper"
+# region "Helper"
 def ExtractDiscordId(string: str) -> list:
     """Gets the discord id from the inputed string
 
@@ -44,9 +44,9 @@ def ExtractDiscordId(string: str) -> list:
         return [re.findall(patternIdOnly, Id)[0] for Id in Canidates]
     
     return [re.findall(patternIdOnly, Canidates[0])[0]]
-#endregion
+# endregion
 
-#region "Database Creation"
+# region "Database Creation"
 def CreateSnipesDB():
     """Creates all the databases nessessary for the program.
     """
@@ -618,10 +618,7 @@ def GenerateSnipeString(SniperId: int, SnipedId: int) -> str:
 
 # region "Quotes Commands"
 def QualifiedQuote(Quote: str) -> bool:
-    print(f"Quote: {Quote}")
-    print(re.search("<a>", Quote) != None)
-    print(re.search("<v>", Quote) != None)
-    return (re.search("<a>", Quote) != None) and (re.search("<v>", Quote) != None)
+    return (re.search("<a>", Quote) is not None) and (re.search("<v>", Quote) is not None)
 
 def CreateQuote(Quote: str) -> int:
     """Creates a new quote in the database.
@@ -725,7 +722,7 @@ def QuoteExists(Id: int) -> bool:
             raise Exception(f"Returned {NumRows} rows.")
 
     except Exception as ex:
-        print(f"{FILE_NAME} -- SnipeIdExists -- {ex}")
+        print(f"{FILE_NAME} -- QuoteExists -- {ex}")
         result = False
 
     finally:
@@ -739,7 +736,7 @@ def GetQuote(Id: int) -> str:
     try:
         conn = sqlite3.connect(CONNECTION_PATH)
         sql = f"SELECT id, quote FROM {QUOTES_T} WHERE Id=?"
-        param = ([str(Id)])
+        param = (Id,)
         cur = conn.execute(sql, param)
         row = cur.fetchone()
         result = list(row)
@@ -759,9 +756,9 @@ def UpdateQuote(Id: int, Quote: str) -> str:
     Returns:
         str: The new quote or nothing if it failed to be inserted.
     """
-    if not QuoteExists(id):
+    if not QuoteExists(Id):
         return ""
-    
+
     if not QualifiedQuote(Quote):
         return "New quote invalid, needs <a> and <v>"
     
