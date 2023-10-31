@@ -554,7 +554,7 @@ class Admin(commands.Cog):
             if not DB.QuoteExists(int(args[0])):
                 await ctx.send(f"Quote {args[0]} does not exists in the database.")
                 return
-            
+
             DB.UpdateQuote(int(args[0]), args[1:].join(' '))
             quote = DB.GetQuote(args[0])
             await ctx.send(f"Updated snipe {args[0]} as \"{quote}\".")
