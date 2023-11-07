@@ -606,12 +606,17 @@ def PlayerDisplayName(Id: int) -> str:
         return ""
 
 #endregion
+def SnipedTwice(SniperId: int, SnipedId: int) -> bool:
+    return CountSniperSnipedAmount(SniperId, SnipedId) == 2
 
 def GenerateSnipeString(SniperId: int, SnipedId: int) -> str:
     Attacker = PlayerDisplayName(SniperId)
     Victim = PlayerDisplayName(SnipedId)
 
-    Quote = randChoice(ReadAllQuotes())[1]
+    if SnipedTwice(SniperId, SnipedId):
+        Quote = "If I had a nickle for everytime <a> sniped <v> then I would have two nickles. Which isn't a lot but it is weird that it happened twice."
+    else:
+        Quote = randChoice(ReadAllQuotes())[1]
     Quote = Quote.replace("<a>", Attacker)
     Quote = Quote.replace("<v>", Victim)
     return Quote
@@ -971,6 +976,33 @@ def ReadSnipesOfSniped(SnipedId: int):
         conn.close()
         return result
 
+def CountSniperSnipedAmount(SniperId: int, SnipedId: int) -> int:
+    """Returns the number of times a single player sniped a single other player.
+
+    Args:
+        SniperId (int): The sniper's id.
+        SnipedId (int): The sniper's id.
+
+    Returns:
+            list: A list of the snipes. The snipes are a list containing, respectively,
+            Id, Timestamp, sniperid, snipedid, isdeleted.
+    """
+    result = 0
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"SELECT * FROM {SNIPES_T} WHERE IsDeleted=0 AND SniperId=? AND SnipedId=?;"
+        param = (SniperId, SnipedId,)
+        cur = conn.execute(sql, param)
+        rows = cur.fetchall()
+        result = len(rows)
+    except Exception as ex:
+        Log.Error(FILE_NAME, "CountSniperSnipedAmount", str(ex))
+        print(f"File: {FILE_NAME} -- Funct: CountSniperSnipedAmount -- Error: {str(ex)}")
+        result = -1
+    finally:
+        conn.close()
+        print(result)
+        return result
 #endregion
 
 #region "Update Commands"
