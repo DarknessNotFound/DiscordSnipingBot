@@ -976,6 +976,37 @@ def ReadSnipesOfSniped(SnipedId: int):
         conn.close()
         return result
 
+def ReadSnipesOfId(SnipeId: int):
+    """Gets snipe based on its id.
+
+    Args:
+        SnipeId (int): The sniper's id.
+
+    Returns:
+            list: A list of the snipes. The snipes are a list containing, respectively,
+            Id, Timestamp, sniperid, snipedid, isdeleted.
+    """
+    result = []
+    try:
+        conn = sqlite3.connect(CONNECTION_PATH)
+        sql = f"SELECT * FROM {SNIPES_T} WHERE IsDeleted=0 AND SnipedId=?;"
+        param = (SnipeId,)
+        cur = conn.execute(sql, param)
+        rows = cur.fetchall()
+
+        for row in rows:
+            result.append(list(row))
+
+    except Exception as ex:
+        Log.Error(FILE_NAME, "ReadSnipesOfIds", str(ex))
+        result = []
+    finally:
+        conn.close()
+        if len(result) == 0:
+            return None
+        else:
+            return result[0]
+
 def CountSniperSnipedAmount(SniperId: int, SnipedId: int) -> int:
     """Returns the number of times a single player sniped a single other player.
 

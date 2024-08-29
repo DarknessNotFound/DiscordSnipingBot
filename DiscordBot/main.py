@@ -1,7 +1,3 @@
-# I don't recommend changing anything in this file, as it just sets up the cogs and runs the bot and itself.
-
-# Run this file using -o flag to run in production.
-
 import os
 import asyncio
 import random
@@ -32,7 +28,12 @@ CreateSuperuser(OWNER)
 
 # Bot and client settings.
 client = discord.Client(intents=intents)
-bot = commands.Bot(command_prefix='>>', intents=intents, case_insensitive=True)
+bot = commands.Bot(
+    command_prefix='>>', 
+    intents=intents, 
+    case_insensitive=True,
+    help_command=commands.MinimalHelpCommand()
+    )
 # Prints a message to say it connected successfully
 # NOTE: Sometimes takes a second to trigger and send msg
 
