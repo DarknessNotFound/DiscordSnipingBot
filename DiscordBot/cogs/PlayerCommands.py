@@ -5,12 +5,13 @@ import DbManagement as DB
 from discord.ext import commands
 
 FILE_NAME = "PlayerCommands"
+
+
 class Player(commands.Cog):
-
-
     def __init__(self, client):
         self.client = client
     # Commands
+
     @commands.command(name='snipe', help='Snipes the user, if possible please @ the person you sniped (and only the @)')
     async def snipe(self, ctx, *args):
         """The very basic snipe
