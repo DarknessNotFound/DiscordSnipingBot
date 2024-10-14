@@ -64,7 +64,7 @@ class Admin(commands.Cog):
                 title="Welcome to the BSU's Fall 2024 Sniping Season",
                 color=0xFF5733
                 )
-        msg.add_field(name="Motivation", inline=False, value="Ruh-roh-Raggy! Scooby snacks are worth monsters. Rello, rould you snipe ronsters for me? I only have enough Scooby snacks for one winner.")
+        msg.add_field(name="Motivation", inline=False, value="Ruh-roh-Raggy! Scooby snacks are not worth monsters. Rello, rould you snipe ronsters for me? I only have enough Scooby snacks for one sniper.")
         msg.add_field(name="Rules", inline=False, value="We want a fair fight and will unmask any cheaters caught in our little competition -Velma")
         msg.add_field(name="Allowed Victims", inline=False, value="Only those who are an current member or alumni of the BSU may be sniped. Anyone can snipe Joebob off the streets but it is hard to snipe the Fredster. -Fred")
         msg.add_field(name="DMZ", inline=False, value="The *Baptist Rudent Runion* is a DMZ zone. I don't want people sniping from the BSU nor sniping into the BSU.")
