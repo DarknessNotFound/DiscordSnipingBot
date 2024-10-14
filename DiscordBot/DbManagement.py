@@ -641,7 +641,7 @@ def GenerateSnipeString(SniperId: int, SnipedId: int) -> str:
     Victim = PlayerDisplayName(SnipedId)
 
     if SnipedTwice(SniperId, SnipedId):
-        Quote = "If I had a nickle for everytime <a> sniped <v> then I would have two nickles. Which isn't a lot but it is weird that it happened twice."
+        Quote = "If I had a nickle for everytime <a> sniped <v> then I would have two nickles. Which isn't a lot but it is weird that it happened twice. Wait, what do you mean I shouldn't be here? If it wasn't for those meddling kids (and Ethan betraying me), my SNIPINATOR would've worked. Sigh, fine I'll leave."
     else:
         Quote = randChoice(ReadAllQuotes())[1]
     Quote = Quote.replace("<a>", Attacker)

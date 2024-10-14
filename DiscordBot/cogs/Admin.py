@@ -64,12 +64,12 @@ class Admin(commands.Cog):
                 title="Welcome to the BSU's Fall 2023 Sniping Season",
                 color=0xFF5733
                 )
-        msg.add_field(name="Motivation", inline=False, value="Hello, thanks for signing up for my EVIL internship. I, uhhh, need a someone who can aim my SNIPINATOR, Roger has been a pain in my side and I am ready to finish him once and FOR ALL! I tried aiming myself but I, uhhh, kinda missed. Sorry again Marge.")
-        msg.add_field(name="Rules", inline=False, value="While I may be EVIL, my competitions don't have to be. This needs to be fair so that I can choose only the most EVIL sniper out there for my SNIPINATOR.")
-        msg.add_field(name="Allowed Victims", inline=False, value="Only those who are an current member or alumni of the BSU may be sniped. Anyone can snipe Joebob off the streets but it is hard to snipe Perry the Platypus.")
-        msg.add_field(name="DMZ", inline=False, value="The *Baptist Student Union Incorporated* is a DMZ zone. I don't want people sniping from the BSU Inc nor sniping into the BSU Inc. I live here ya know.")
-        msg.add_field(name="Valid Snipes", inline=False, value="The snipes have to be obvious who was sniped, I don't have time to decipher all those pictures. I got inators to make.")
-        msg.add_field(name="Questions", inline=False, value="Any questions or rules clarifications should be sent through Grant 1 or Grant 2. Those losers decided to help me with this FOR FREE, haha, its amazing what you can find off of the internet.")
+        msg.add_field(name="Motivation", inline=False, value="Ruh-roh-Raggy! Scooby snacks are worth monsters. Rello, rould you snipe ronsters for me? I only have enough Scooby snacks for one winner.")
+        msg.add_field(name="Rules", inline=False, value="We want a fair fight and will unmask any cheaters caught in our little competition -Velma")
+        msg.add_field(name="Allowed Victims", inline=False, value="Only those who are an current member or alumni of the BSU may be sniped. Anyone can snipe Joebob off the streets but it is hard to snipe the Fredster. -Fred")
+        msg.add_field(name="DMZ", inline=False, value="The *Baptist Rudent Runion* is a DMZ zone. I don't want people sniping from the BSU nor sniping into the BSU.")
+        msg.add_field(name="Valid Snipes", inline=False, value="The snipes have to be obvious who was sniped, I don't have time to decipher all those pictures man. I got sandwiches to make. -Shaggy")
+        msg.add_field(name="Questions", inline=False, value="Any questions or rules clarifications should be sent to Grant 2, he is doing it for a scooby snack. - Daphne")
         await ctx.send(embed=msg)
 
     #region Quotes

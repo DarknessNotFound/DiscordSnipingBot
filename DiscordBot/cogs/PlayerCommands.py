@@ -93,10 +93,10 @@ class Player(commands.Cog):
                     "\n> - There is a little bit of grey area here." +
                     "\n\n> **BSU DMZ**: The BSU's (including the parking lot) is a \"No fire\" zone. You are NOT allowed to snipe from the BSU nor someone in the BSU." +
                     "\n\n> **Targets**: Only BSU members can be sniped, even if they aren't in the discord." +
-                    "\n> - \"Active member\" will be up to the Grants' discretion." +
+                    "\n> - \"Active member\" will be up to the Grant 2's discretion." +
                     "\n\n> **Questionable Snipes**: If you question if your snipe is valid, do these two things: " +
                     "\n>   1. Ask the victim, if they agree it was a valid snipe, then generally it is okay to post without further action required." +
-                    "\n>   2. If you don't know even after that, post it and send the snipe command, and then reply to your own post mentioning one of the Grants.",
+                    "\n>   2. If you don't know even after that, post it and send the snipe command, and then reply to your own post mentioning Grant 2.",
                     inline=False                 
             )
 
