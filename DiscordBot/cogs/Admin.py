@@ -61,7 +61,7 @@ class Admin(commands.Cog):
             await ctx.send("Action denied: Not high enough permission level.")
             return
         msg = discord.Embed(
-                title="Welcome to the BSU's Fall 2023 Sniping Season",
+                title="Welcome to the BSU's Fall 2024 Sniping Season",
                 color=0xFF5733
                 )
         msg.add_field(name="Motivation", inline=False, value="Ruh-roh-Raggy! Scooby snacks are worth monsters. Rello, rould you snipe ronsters for me? I only have enough Scooby snacks for one winner.")
